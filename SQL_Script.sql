@@ -1,10 +1,25 @@
 
--- Database tables creating script
+--================================================================================================
+--================================================================================================
+--	Creating tables code is not heavily commented because it's self-descriptive
+--	To know more about why everything is made like this and what the purpose of all the details
+--	please visit this GitHub repo to read the documentation: 
+
+--	the creating script of the database is saperated into two parts
+--	First is helper tables which are the tables where the info will be fixed 
+--	or won't need to be updated for a long time
+--	the second part is the main tables that have references and indexes
+--================================================================================================
+--================================================================================================
+
+-- Creating Database
+
+-- CREATE DATABASE Hotel_DB;
+-- Use Hotel_DB;
 
 --==================================================================================================
 ---------------------------[		Helper Tables		]-----------------------------------
 --==================================================================================================
-
 -- Create Countries Table
 CREATE TABLE Countries (
     country_id		INT PRIMARY	KEY IDENTITY(1,1),
@@ -189,7 +204,7 @@ CREATE TABLE Room_Types (
     base_price_rate		SMALLMONEY		NOT NULL,
 
 	-- CONSTRAINTs
-	CONSTRAINT CK_Capacity			CHECK		(capacity > 0), --capacity cant be 0 or negative
+	CONSTRAINT CK_Room_Types_Capacity			CHECK		(capacity > 0), --capacity cant be 0 or negative
     CONSTRAINT FK_RoomTypes_BedType FOREIGN KEY (bed_type_id) REFERENCES bed_types(bed_type_id)
 );
 
@@ -258,7 +273,7 @@ CREATE TABLE Rooms (
 
 -- CONSTRAINTS
 	--Check
-	CONSTRAINT CK_capacity	CHECK (capacity > 0),	-- Capacity must be positive
+	CONSTRAINT CK_Rooms_capacity	CHECK (capacity > 0),	-- Capacity must be positive
 	CONSTRAINT CK_Floor		CHECK (floor >= 0),		-- Floor must be non-negative
 	-- FOREIGN KEYs
     CONSTRAINT FK_Rooms_RoomType		FOREIGN KEY (room_type_id)		REFERENCES Room_Types(room_type_id),
@@ -334,7 +349,7 @@ CREATE TABLE Departments (
 --	and must add the forign key constrint after creating the tow tables
 
 Alter Table Staff
-Add CONSTRAINT FK_Staff_Department	FOREIGN KEY (department_id) REFERENCES Departments(ID);
+Add CONSTRAINT FK_Staff_Department	FOREIGN KEY (department_id) REFERENCES Departments(department_id);
 
 
 ----------------------------------------------------------------------------------------------------
@@ -350,7 +365,7 @@ CREATE TABLE Position (
     responsibilities NVARCHAR(MAX)	NULL,
 
 -- CONSTRAINTS
-	CONSTRAINT CK_salary_max			CHECK		(salary_min >= 0),			-- Minimum salary must be non-negative
+	CONSTRAINT CK_salary_min			CHECK		(salary_min >= 0),			-- Minimum salary must be non-negative
 	CONSTRAINT CK_salary_max			CHECK		(salary_max >= salary_min),	-- Maximum salary must be greater than or equal to minimum
     CONSTRAINT FK_Position_Department	FOREIGN KEY (department_id) REFERENCES Departments(department_id)
 );
@@ -392,12 +407,12 @@ CREATE TABLE Reservation (
 -- Constraints
     CONSTRAINT FK_Reservation_Guest		FOREIGN KEY (guest_id)		REFERENCES Guests(guest_id),
     CONSTRAINT FK_Reservation_Room		FOREIGN KEY (room_id)		REFERENCES Rooms(room_id),
-    CONSTRAINT FK_Reservation_Payment	FOREIGN KEY (payment_id)	REFERENCES Payment(payment_id)
+-- there is a fk constraint added later due to circluare refrance
 );
 
 --indexing guest id
 CREATE NONCLUSTERED INDEX idx_person_id
-ON Reservation (person_id);
+ON Reservation (guest_id);
 
 
 ----------------------------------------------------------------------------------------------------
@@ -429,5 +444,7 @@ CREATE TABLE Payment (
     CONSTRAINT FK_Payment_Currency		FOREIGN KEY (currency_id)		REFERENCES Currencies(currency_id)
 );
 
+Alter Table Reservation
+add CONSTRAINT FK_Reservation_Payment	FOREIGN KEY (payment_id)	REFERENCES Payment(payment_id)
 
 -- End of Database Creation Script
