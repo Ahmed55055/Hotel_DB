@@ -1,346 +1,1163 @@
-# Hotel Management System Database Documentation
+# Database Design Documentation
 
 ## Overview
-This database is designed to manage a comprehensive hotel management system. It encompasses various entities such as guests, staff, rooms, services, and payments, facilitating functionalities like reservations, loyalty programs, and staff management.
+
+This documentation provides a comprehensive overview of the database design for a hotel management system. It details the purpose, structure, and constraints of each table, including field names, data types, and foreign key relationships. The design aims to efficiently manage various aspects of hotel operations, including user accounts, guest information, room management, services, payments, and staff administration.
 
 ## Table of Contents
-- [1. Counties](#1-counties)
-- [2. IDProofTypes](#2-idprooftypes)
-- [3. Person](#3-person)
-- [4. Users](#4-users)
-- [5. User_Types](#5-user_types)
-- [6. Communication_Ways](#6-communication_ways)
-- [7. Loyalty_Tiers](#7-loyalty_tiers)
-- [8. Loyalty_Benefits](#8-loyalty_benefits)
-- [9. Services](#9-services)
-- [10. Rooms](#10-rooms)
-- [11. Room_Types](#11-room_types)
-- [12. Bed_Types](#12-bed_types)
-- [13. Room_Status](#13-room_status)
-- [14. Staff](#14-staff)
-- [15. Employee_Types](#15-employee_types)
-- [16. Departments](#16-departments)
-- [17. Position](#17-position)
-- [18. Phone](#18-phone)
-- [19. Guests](#19-guests)
-- [20. Reservations](#20-reservations)
-- [21. Payment_Methods](#21-payment_methods)
-- [22. Payment_Status](#22-payment_status)
-- [23. Payment](#23-payment)
-- [24. Card_Types](#24-card_types)
-- [25. Currencies](#25-currencies)
-- [26. Relationships](#26-relationships)
-- [27. Conclusion](#27-conclusion)
 
-## 1. Counties
-**Purpose**: Stores information about countries.
+1. [Countries Table](#1-countries-table)
+2. [ID Proof Types Table](#2-id-proof-types-table)
+3. [User  Types Table](#3-user-types-table)
+4. [Communication Ways Table](#4-communication-ways-table)
+5. [Loyalty Tiers Table](#5-loyalty-tiers-table)
+6. [Services Table](#6-services-table)
+7. [Bed Types Table](#7-bed-types-table)
+8. [Employee Types Table](#8-employee-types-table)
+9. [Room Status Table](#9-room-status-table)
+10. [Payment Methods Table](#10-payment-methods-table)
+11. [Payment Status Table](#11-payment-status-table)
+12. [Card Types Table](#12-card-types-table)
+13. [Currencies Table](#13-currencies-table)
+14. [People Table](#14-people-table)
+15. [Users Table](#15-users-table)
+16. [Room Types Table](#16-room-types-table)
+17. [Guests Table](#17-guests-table)
+18. [Loyalty Benefits Table](#18-loyalty-benefits-table)
+19. [Rooms Table](#19-rooms-table)
+20. [Staff Table](#20-staff-table)
+21. [Departments Table](#21-departments-table)
+22. [Position Table](#22-position-table)
+23. [Phone Table](#23-phone-table)
+24. [Reservation Table](#24-reservation-table)
+25. [Payment Table](#25-payment-table)
+26. [Indexing in the Database](#indexing-in-the-database)
 
-| Field            | Type     | Description                                |
-|------------------|----------|--------------------------------------------|
-| `ID`             | INT      | Unique identifier for the country (PK).   |
-| `name`           | VARCHAR  | Name of the country.                       |
-| `COUNTRY_CODE`   | VARCHAR  | ISO country code.                          |
-| `ISO_CODE`       | VARCHAR  | International Organization for Standardization code. |
+---
 
-## 2. IDProofTypes
-**Purpose**: Contains types of identification proofs.
+## 1. Countries Table
 
-| Field            | Type     | Description                                |
-|------------------|----------|--------------------------------------------|
-| `ID`             | INT      | Unique identifier for the ID proof type (PK). |
-| `ProofTypeName`  | VARCHAR  | Name of the ID proof type (e.g., Passport). |
+### Purpose
+The `Countries` table stores information about different countries, which can be referenced in other tables.
 
-## 3. Person
-**Purpose**: Represents individuals (guests and staff) in the system.
+### Fields
+| Field Name     | Data Type     | Purpose                                        |
+|----------------|----------------|------------------------------------------------|
+| country_id     | INT            | Unique identifier for each country (Primary Key) |
+| name           | NVARCHAR(255)  | Name of the country (Cannot be NULL)         |
+| country_code   | NVARCHAR(10)   | Short code representing the country (Cannot be NULL) |
+| iso_code       | NVARCHAR(10)   | ISO code for the country (Cannot be NULL)    |
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for a person (PK).      |
-| `FirstName`              | VARCHAR  | First name of the person.                  |
-| `SecondName`             | VARCHAR  | Second name of the person (nullable).      |
-| `ThirdName`              | VARCHAR  | Third name of the person (nullable).       |
-| `LastName`               | VARCHAR  | Last name of the person.                   |
-| `Email`                  | VARCHAR  | Unique email address (nullable).           |
-| `DateOfBirth`           | DATE     | Date of birth (nullable).                  |
-| `IDProofType_ID`        | INT      | Foreign key referencing IDProofTypes.      |
-| `IDProofType_Number`     | VARCHAR  | Unique number of the ID proof (nullable).  |
-| `countryID`              | INT      | Foreign key referencing Counties.           |
+### Constraints
+- `country_id` is the primary key.
 
-## 4. Users
-**Purpose**: Manages user accounts for guests and staff.
+---
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for a user (PK).        |
-| `Username`               | VARCHAR  | User's login name.                         |
-| `Password_hash`          | VARCHAR  | Hashed password for security.              |
-| `IsActive`               | BIT      | Indicates if the account is active.       |
-| `LastLogin`              | DATETIME | Timestamp of the last login (nullable).    |
-| `account_locked`         | BIT      | Indicates if the account is locked.       |
-| `account_locked_until`   | DATETIME | Timestamp until the account remains locked (nullable). |
-| `personID`               | INT      | Foreign key referencing Person. |
-| `user_type_id`            | INT      | Foreign key referencing User_Types.     |
+## 2. ID Proof Types Table
 
-## 5. User_Types
-**Purpose**: Defines different types of users (e.g., guest, staff).
+### Purpose
+The `id_proof_types` table stores different types of identification proofs that can be associated with people.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `user_type_id`          | INT      | Unique identifier for the user type (PK). |
-| `type_name`             | VARCHAR  | Name of the user type.                    |
-| `description`           | TEXT     | Description of the user type.             |
-| `permissions`            | TEXT     | Permissions associated with the user type. |
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| id_proof_type_id   | INT            | Unique identifier for each proof type (Primary Key) |
+| proof_type_name     | NVARCHAR(255)  | Name of the proof type (Cannot be NULL)      |
 
-## 6. Communication_Ways
-**Purpose**: Stores different communication preferences.
+### Constraints
+- `id_proof_type_id` is the primary key.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the communication method (PK). |
-| `communication_name`     | VARCHAR  | Name of the communication method (e.g., Email, SMS). |
+---
 
-## 7. Loyalty_Tiers
-**Purpose**: Defines loyalty tiers for guests.
+## 3. User Types Table
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `loyalty_tier_id`       | INT      | Unique identifier for the loyalty tier (PK). |
-| `tier_name`             | VARCHAR  | Name of the loyalty tier.                  |
-| `min_points`            | INT      | Minimum points required for this tier.     |
+### Purpose
+The `User _Types` table defines different user roles within the system, including their permissions.
 
-## 8. Loyalty_Benefits
-**Purpose**: Links loyalty tiers to benefits (services).
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| user_type_id       | INT            | Unique identifier for each user type (Primary Key) |
+| type_name          | NVARCHAR(255)  | Name of the user type (Cannot be NULL)       |
+| description        | NVARCHAR(MAX)   | Description of the user type (Nullable)      |
+| permissions        | BIGINT         | Bitwise representation of permissions (Cannot be NULL) |
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the loyalty benefit (PK). |
-| `loyalty_tier_id`       | INT      | Foreign key referencing Loyalty_Tiers.     |
-| `service_id`            | INT      | Foreign key referencing Services.          |
-| `discount`              | DECIMAL  | Discount associated with the benefit.      |
-| `points`                | INT      | Points required to redeem the benefit.     |
+### Constraints
+- `user_type_id` is the primary key.
 
-## 9. Services
-**Purpose**: Lists services offered by the hotel.
+---
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the service (PK).   |
-| `service_name`          | VARCHAR  | Name of the service.                       |
-| `description`           | TEXT     | Description of the service.                |
-| `price`                 | DECIMAL  | Price of the service.                      |
+## 4. Communication Ways Table
 
-## 10. Rooms
-**Purpose**: Represents rooms available in the hotel.
+### Purpose
+The `Communication_Ways` table stores different methods of communication that can be preferred by guests.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the room (PK).      |
-| `room_type`             | INT      | Foreign key referencing Room_Types.       |
-| `Capacity`              | INT      | Maximum number of occupants.               |
-| `floor`                 | INT      | Floor number where the room is located.   |
-| `current_status`        | INT      | Foreign key referencing Room_Status.       |
+### Fields
+| Field Name               | Data Type     | Purpose                                       |
+|--------------------------|----------------|-----------------------------------------------|
+| communication_way_id     | INT            | Unique identifier for each communication method (Primary Key) |
+| communication_name       | NVARCHAR(255)  | Name of the communication method (Cannot be NULL, Unique) |
 
-## 11. Room_Types
-**Purpose**: Defines different types of rooms.
+### Constraints
+- `communication_way_id` is the primary key.
+- `communication_name` must be unique.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the room type (PK). |
-| `bed_type_id`           | INT      | Foreign key referencing Bed_Types.        |
-| `capacity`              | INT      | Maximum capacity of the room.              |
-| `WiFi`                  | BIT      | Indicates if WiFi is available (boolean).  |
-| `Internet_speed_MB`     | INT      | Speed of the internet in megabytes.       |
-| `TV`                    | BIT      | Indicates if a TV is available (boolean).  |
-| `work_desk`             | BIT      | Indicates if a work desk is available (boolean). |
-| `balcony`               | BIT      | Indicates if a balcony is available (boolean). |
-| `refrigerator`          | BIT      | Indicates if a refrigerator is available (boolean). |
-| `coffee_maker`          | BIT      | Indicates if a coffee maker is available (boolean). |
-| `safe`                  | BIT      | Indicates if a safe is available (boolean). |
-| `room_orientation`      | VARCHAR  | Orientation of the room (e.g., sea view). |
-| `base_price_rate`       | DECIMAL  | Base price rate for the room.             |
+---
 
-## 12. Bed_Types
-**Purpose **Purpose**: Lists different types of beds available in rooms.
+## 5. Loyalty Tiers Table
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the bed type (PK).  |
-| `type_name`             | VARCHAR  | Name of the bed type (e.g., King, Queen). |
-| `description`           | TEXT     | Description of the bed type.               |
-| `capacity`              | INT      | Maximum number of occupants for the bed type. |
+### Purpose
+The `Loyalty_Tiers` table defines different loyalty tiers for guests based on their points.
 
-## 13. Room_Status
-**Purpose**: Represents the status of rooms (e.g., available, occupied).
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| loyalty_tier_id    | INT            | Unique identifier for each loyalty tier (Primary Key) |
+| tier_name          | NVARCHAR(255)  | Name of the loyalty tier (Cannot be NULL)    |
+| min_points         | INT            | Minimum points required to qualify for the tier (Cannot be NULL) |
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `room_status_id`        | INT      | Unique identifier for the room status (PK). |
-| `status`                 | VARCHAR  | Current status of the room.                |
-| `description`           | TEXT     | Description of the status.                 |
+### Constraints
+- `loyalty_tier_id` is the primary key.
 
-## 14. Staff
-**Purpose**: Manages staff information.
+---
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `Id`                     | INT      | Unique identifier for the staff member (PK). |
-| `PersonID`               | INT      | Foreign key referencing Person.            |
-| `DepartmentID`           | INT      | Foreign key referencing Departments (nullable). |
-| `PositionID`             | INT      | Foreign key referencing Position.          |
-| `ManagerID`              | INT      | Foreign key referencing Staff (nullable).  |
-| `Salary`                 | DECIMAL  | Salary of the staff member.                |
-| `employee_type_id`       | INT      | Foreign key referencing Employee_Types.    |
-| `emergency_contact_phone` | VARCHAR  | Emergency contact phone number.            |
-| `bank_account_number`     | VARCHAR  | Bank account number for salary deposits.   |
-| `performance_rating`      | DECIMAL  | Rating of the staff member's performance.  |
-| `employment_status`       | INT      | Foreign key referencing employment status.  |
-| `hire_date`              | DATE     | Date of hiring.                            |
-| `departure_date`         | DATE     | Date of departure (nullable).              |
-| `user_id`                | INT      | Foreign key referencing Users.             |
+## 6. Services Table
 
-## 15. Employee_Types
-**Purpose**: Defines types of employment (e.g., full-time, part-time).
+### Purpose
+The `Services` table stores information about various services offered by the hotel.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the employee type (PK). |
-| `type_name`             | VARCHAR  | Name of the employee type.                 |
-| `description`           | TEXT     | Description of the employee type.          |
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| service_id         | INT            | Unique identifier for each service (Primary Key) |
+| service_name       | NVARCHAR(255)  | Name of the service (Cannot be NULL)         |
+| description        | NVARCHAR(MAX)   | Description of the service (Nullable)        |
+| price_usd          | SMALLMONEY      | Price of the service in USD (Cannot be NULL) |
 
-## 16. Departments
-**Purpose**: Represents different departments within the hotel.
+### Constraints
+- `service_id` is the primary key.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the department (PK). |
-| `DepartmentName`        | VARCHAR  | Name of the department.                    |
-| `DepartmentHead`        | INT      | Foreign key referencing Staff.             |
-| `Email`                 | VARCHAR  | Contact email for the department.          |
-| `Budget`                | DECIMAL  | Budget allocated to the department.        |
-| `location`              | VARCHAR  | Physical location of the department.       |
+---
 
-## 17. Position
-**Purpose**: Defines positions within departments.
+## 7. Bed Types Table
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the position (PK).  |
-| `Title`                  | VARCHAR  | Title of the position.                     |
-| `DepartmentID`          | INT      | Foreign key referencing Departments.       |
-| `Salary_min`            | DECIMAL  | Minimum salary for the position.          |
-| `Salary_max`            | DECIMAL  | Maximum salary for the position.          |
-| `qualifications`        | TEXT     | Required qualifications for the position.  |
-| `responsibilities`      | TEXT     | Responsibilities associated with the position. |
+### Purpose
+The `bed_types` table defines different types of beds available in the hotel.
 
-## 18. Phone
-**Purpose**: Stores phone numbers associated with persons.
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| bed_type_id        | INT            | Unique identifier for each bed type (Primary Key) |
+| type_name          | NVARCHAR(255)  | Name of the bed type (Cannot be NULL) |
+| description        | NVARCHAR(MAX)   | Description of the bed type (Nullable)       |
+| capacity           | SMALLINT        | Maximum number of guests the bed can accommodate (Cannot be NULL) |
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the phone record (PK). |
-| `phoneNumber`           | VARCHAR  | Phone number.                             |
-| `personID`              | INT      | Foreign key referencing Person.           |
-| `isActive`              | BIT      | Indicates if the phone number is active. |
+### Constraints
+- `bed_type_id` is the primary key.
+- `capacity` must be greater than 0.
 
-## 19. Guests
-**Purpose**: Represents guests staying at the hotel.
+---
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `ID`                     | INT      | Unique identifier for the guest (PK).     |
-| `personID`              | INT      | Foreign key referencing Person.            |
-| `loyalty_tier_id`       | INT      | Foreign key referencing Loyalty_Tiers.     |
-| `loyalty_points`        | INT      | Points accumulated by the guest.           |
-| `total_stays`           | INT      | Total number of stays by the guest.       |
-| `preferred_room_type_id` | INT      | Foreign key referencing Room_Types.        |
-| `last_stay_date`        | DATE     | Date of the last stay.                     |
-| `communication_preference_id` | INT | Foreign key referencing Communication_Ways. |
-| `is_vip`                | BIT      | Indicates if the guest is a VIP.          |
-| `user_id`               | INT      | Foreign key referencing Users.             |
+## 8. Employee Types Table
 
-## 20. Reservations
-**Purpose**: Manages room reservations made by guests.
+### Purpose
+The `Employee_Types` table categorizes different types of employees within the hotel.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `reservation_id`        | INT      | Unique identifier for the reservation (PK). |
-| `guest_id`              | INT      | Foreign key referencing Guests.            |
-| `room_id`               | INT      | Foreign key referencing Rooms.             |
-| `check_in_date`         | DATETIME | Date and time of check-in.                |
-| `check_out_date`        | DATETIME | Date and time of check-out.               |
-| `actual_check_out_date` | DATETIME | Date and time of actual check-out (nullable). |
-| `payment`               | INT      | Foreign key referencing Payment (nullable). |
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| employee_type_id   | INT            | Unique identifier for each employee type (Primary Key) |
+| type_name          | NVARCHAR(255)  | Name of the employee type (Cannot be NULL)   |
+| description        | NVARCHAR(MAX)   | Description of the employee type (Nullable)  |
 
-## 21. Payment_Methods
-**Purpose**: Lists available payment methods.
+### Constraints
+- `employee_type_id` is the primary key.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `payment_method_id`      | INT      | Unique identifier for the payment method (PK). |
-| `method_name`           | VARCHAR  | Name of the payment method.                |
-| `description`           | TEXT     | Description of the payment method.         |
+---
 
-## 22. Payment_Status
-**Purpose**: Represents the status of payments.
+## 9. Room Status Table
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `status_id`             | INT      | Unique identifier for the payment status (PK). |
-| `status_name`           | VARCHAR  | Name of the payment status.                |
-| `description`           | TEXT     | Description of the payment status.         |
+### Purpose
+The `room_status` table tracks the current status of each room in the hotel.
 
-## 23. Payment
-**Purpose**: Manages payment transactions related to reservations.
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| room_status_id     | INT            | Unique identifier for each room status (Primary Key) |
+| status             | NVARCHAR(255)  | Current status of the room (Cannot be NULL)  |
+| description        | NVARCHAR(MAX)   | Description of the room status (Nullable)    |
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `payment_id`            | INT      | Unique identifier for the payment (PK).   |
-| `reservation_id`        | INT      | Foreign key referencing Reservations.      |
-| `guest_id`              | INT      | Foreign key referencing Guests.            |
-| `amount`                | DECIMAL  | Amount paid.                               |
-| `payment_method_id`     | INT      | Foreign key referencing Payment_Methods.   |
-| `payment_status_id`     | INT      | Foreign key referencing Payment_Status.    |
-| `card_type_id`          | INT      | Foreign key referencing Card_Types.       |
-| `payment_date`          | DATETIME | Date and time of the payment.             |
-| `currency_id`           | INT      | Foreign key referencing Currencies.       |
-| `note`                  | TEXT     | Additional notes regarding the payment.    |
+### Constraints
+- `room_status_id` is the primary key.
 
-## 24. Card_Types
-**Purpose**: Lists types of payment cards.
+---
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `card_type_id`          | INT      | Unique identifier for the card type (PK). |
-| `card_name`             | VARCHAR  | Name of the card type (e.g., Visa, MasterCard). |
-| `description`           | TEXT     | Description of the card type.             |
+## 10. Payment Methods Table
 
-## 25. Currencies
-**Purpose**: Stores information about different currencies.
+### Purpose
+The `Payment_Methods` table stores various methods of payment accepted by the hotel.
 
-| Field                    | Type     | Description                                |
-|--------------------------|----------|--------------------------------------------|
-| `currency_id`           | INT      | Unique identifier for the currency (PK).  |
-| `currency_name`         | VARCHAR  | Name of the currency.                      |
-| `currency_code`         | VARCHAR  | Code of the currency (e.g., USD, EUR ). |
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| payment_method_id   | INT            | Unique identifier for each payment method (Primary Key) |
+| method_name        | NVARCHAR(255)  | Name of the payment method (Cannot be NULL)  |
+| description        | NVARCHAR(MAX)   | Description of the payment method (Nullable)  |
 
-## 26. Relationships
-### One-to-Many
-- A **User ** can have multiple **Guests**.
-- A **Guest** can have multiple **Reservations**.
-- A **Room_Type** can have multiple **Rooms**.
-- A **Loyalty_Tier** can have multiple **Loyalty_Benefits**.
-- A **Department** can have multiple **Staff**.
-- A **Position** can have multiple **Staff**.
+### Constraints
+- `payment_method_id` is the primary key.
 
-### Many-to-One
-- Multiple **Guests** can reference a single **Person**.
-- Multiple **Staff** can reference a single **Person**.
-- Multiple **Rooms** can reference a single **Room_Type**.
-- Multiple **Payments** can reference a single **Reservation**.
+---
 
-### One-to-One
-- Each **Staff** member can have one **User ** account.
-- Each **Guest** can have one **User ** account.
+## 11. Payment Status Table
 
-## 27. Conclusion
-This documentation provides a comprehensive overview of the database schema for the hotel management system. It outlines the purpose of each table, the fields contained within them, and the relationships between the tables. This structure is designed to facilitate efficient data management and retrieval for various hotel operations, ensuring a seamless experience for both guests and staff.
+### Purpose
+The `Payment_Status` table defines the various statuses a payment can have.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| status_id          | INT            | Unique identifier for each payment status (Primary Key) |
+| status_name        | NVARCHAR(255)  | Name of the payment status (Cannot be NULL)  |
+| description        | NVARCHAR(MAX)   | Description of the payment status (Nullable)  |
+
+### Constraints
+- `status_id` is the primary key.
+
+---
+
+## 12. Card Types Table
+
+### Purpose
+The `Card_Types` table stores information about different types of credit/debit cards accepted.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| card_type_id       | INT            | Unique identifier for each card type (Primary Key) |
+| card_name          | NVARCHAR(255)  | Name of the card type (Cannot be NULL)       |
+| description        | NVARCHAR(MAX)   | Description of the card type (Nullable)      |
+
+### Constraints
+- `card_type_id` is the primary key.
+
+---
+
+## 13. Currencies Table
+
+### Purpose
+The `Currencies` table defines the various currencies accepted by the hotel.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| currency_id        | INT            | Unique identifier for each currency (Primary Key) |
+| currency_name      | NVARCHAR(255)  | Name of the currency (Cannot be NULL)        |
+| currency_code      | NVARCHAR(10)   | Short code representing the currency (Cannot be NULL, Unique) |
+
+### Constraints
+- `currency_id` is the primary key.
+
+---
+
+## 14. People Table
+
+### Purpose
+The `People` table stores personal information about individuals associated with the hotel, including guests and staff.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| person_id                 | INT            | Unique identifier for each person (Primary Key) |
+| first_name                | NVARCHAR(255)  | First name of the person (Cannot be NULL)   |
+| second_name               | NVARCHAR(255)  | Second name of the person (Nullable)         |
+| third_name                | NVARCHAR(255)  | Third name of the person (Nullable)          |
+| last_name | NVARCHAR(255)  | Last name of the person (Cannot be NULL) |
+| email                     | NVARCHAR(255)  | Email address of the person (Nullable)      |
+| date_of_birth             | DATE           | Date of birth of the person (Nullable)      |
+| id_proof_type_id         | INT            | Identifier for the type of ID proof (Cannot be NULL) |
+| id_proof_type_number      | NVARCHAR(255)  | Unique ID proof number (Cannot be NULL, Unique) |
+| country_id                | INT            | Identifier for the country (Cannot be NULL) |
+
+### Constraints
+- `person_id` is the primary key.
+- `id_proof_type_id` is a foreign key referencing `id_proof_types(id_proof_type_id)`.
+- `country_id` is a foreign key referencing `Countries(country_id)`.
+
+---
+
+## 15. Users Table
+
+### Purpose
+The `Users` table manages user accounts for the hotel management system.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| user_id                   | INT            | Unique identifier for each user (Primary Key) |
+| username                  | NVARCHAR(255)  | Unique username for the user (Cannot be NULL) |
+| password_hash             | NVARCHAR(255)  | Hashed password for the user (Cannot be NULL) |
+| is_active                 | BIT            | Indicates if the account is active (Default: 1) |
+| last_login                | DATETIME       | Timestamp of the last login (Nullable)      |
+| account_locked            | BIT            | Indicates if the account is locked (Default: 0) |
+| account_locked_until      | DATETIME       | Timestamp until which the account is locked (Nullable) |
+| person_id                 | INT            | Identifier for the associated person (Nullable) |
+| user_type_id              | INT            | Identifier for the user type (Cannot be NULL) |
+
+### Constraints
+- `user_id` is the primary key.
+- `person_id` is a foreign key referencing `People(person_id)`.
+- `user_type_id` is a foreign key referencing `User _Types(user_type_id)`.
+
+---
+
+## 16. Room Types Table
+
+### Purpose
+The `Room_Types` table defines the various types of rooms available in the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| room_type_id              | INT            | Unique identifier for each room type (Primary Key) |
+| bed_type_id               | INT            | Identifier for the type of bed (Cannot be NULL) |
+| capacity                  | SMALLINT       | Maximum number of guests the room can accommodate (Cannot be NULL) |
+| wifi                      | BIT            | Indicates if Wi-Fi is available (Default: 0) |
+| internet_speed_MB         | FLOAT(24)      | Internet speed in MB (Nullable)              |
+| tv                        | BIT            | Indicates if a TV is available (Default: 0) |
+| work_desk                 | BIT            | Indicates if a work desk is available (Default: 0) |
+| balcony                   | BIT            | Indicates if a balcony is available (Default: 0) |
+| refrigerator              | BIT            | Indicates if a refrigerator is available (Default: 0) |
+| coffee_maker              | BIT            | Indicates if a coffee maker is available (Default: 0) |
+| safe                      | BIT            | Indicates if a safe is available (Default: 0) |
+| room_orientation          | NVARCHAR(255)  | Orientation of the room (Nullable)          |
+| base_price_rate           | SMALLMONEY      | Base price rate for the room (Cannot be NULL) |
+
+### Constraints
+- `room_type_id` is the primary key.
+- `bed_type_id` is a foreign key referencing `bed_types(bed_type_id)`.
+- `capacity` must be greater than 0.
+
+---
+
+## 17. Guests Table
+
+### Purpose
+The `Guests` table stores information about guests staying at the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| guest_id                  | INT            | Unique identifier for each guest (Primary Key) |
+| person_id                 | INT            | Identifier for the associated person (Cannot be NULL) |
+| loyalty_tier_id           | INT            | Identifier for the loyalty tier (Nullable)   |
+| loyalty_points             | INT            | Points accumulated by the guest (Default: 0) |
+| total_stays               | INT            | Total number of stays by the guest (Default: 0) |
+| preferred_room_type_id    | INT            | Identifier for the preferred room type (Nullable) |
+| last_stay_date            | DATE           | Date of the last stay (Nullable)              |
+| communication_preference_id| INT            | Identifier for the preferred communication method (Nullable) |
+| is_vip                    | BIT            | Indicates if the guest is a VIP (Default: 0) |
+| user_id                   | INT            | Identifier for the associated user (Cannot be NULL) |
+
+### Constraints
+- `guest_id` is the primary key.
+- `person_id` is a foreign key referencing `People(person_id)`.
+- `loyalty_tier_id` is a foreign key referencing `Loyalty_Tiers(loyalty_tier_id)`.
+- `preferred_room_type_id` is a foreign key referencing `Room_Types(room_type_id)`.
+- `communication_preference_id` is a foreign key referencing `Communication_Ways(communication_way_id)`.
+- `user_id` is a foreign key referencing `Users(user_id)`.
+
+---
+
+## 18. Loyalty Benefits Table
+
+### Purpose
+The `Loyalty_Benefits` table defines the benefits associated with different loyalty tiers.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| benefit_id                | INT            | Unique identifier for each benefit (Primary Key) |
+| loyalty_tier_id           | INT            | Identifier for the associated loyalty tier (Cannot be NULL) |
+| service_id                | INT            | Identifier for the associated service (Cannot be NULL) |
+| discount_percentage        | FLOAT(24)      | Discount percentage offered (Cannot be NULL) |
+| points                    | INT            | Points required to avail the benefit (Cannot be NULL) |
+
+### Constraints
+- `benefit_id` is the primary key.
+- `loyalty_tier_id` is a foreign key referencing `Loyalty_Tiers(loyalty_tier_id)`.
+- `service_id` is a foreign key referencing `Services(service_id)`.
+- `discount_percentage` must be between 0 and 100.
+
+---
+
+## 19. Rooms Table
+
+### Purpose
+The `Rooms` table stores information about the individual rooms available in the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| room_id                   | INT            | Unique identifier for each room (Primary Key) |
+| room_type_id              | INT            | Identifier for the type of room (Cannot be NULL) |
+| capacity                  | SMALLINT       | Maximum number of guests the room can accommodate (Cannot be NULL) |
+| floor                     | SMALLINT       | Floor number where the room is located (Cannot be NULL) |
+| room_status_id            | INT            | Identifier for the current status of the room (Cannot be NULL) |
+
+### Constraints
+- `room_id` is the primary key.
+- `room_type_id` is a foreign key referencing `Room_Types(room_type_id)`.
+- `room_status_id` is a foreign key referencing `room_status(room_status_id)`.
+- `capacity` must be greater than 0.
+- `floor` must be non-negative.
+
+---
+
+## 20. Staff Table
+
+### Purpose
+The `Staff` table stores information about hotel staff members.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| staff_id                  | INT            | Unique identifier for each staff member (Primary Key) |
+| person_id                 | INT            | Identifier for the associated person (Cannot be NULL) |
+| department_id             | INT            | Identifier for the department (Nullable)     |
+| position_id               | INT            | Identifier for the position (Cannot be NULL) |
+| manager_id                | INT            | Identifier for the manager (Nullable)        |
+| salary                    | SMALLMONEY      | Salary of the staff member (Cannot be NULL)  |
+| employee_type_id          | INT            | Identifier for the employee type (Cannot be NULL) |
+| emergency_contact_phone    | NVARCHAR(15)   | Emergency contact phone number (Nullable)    |
+| bank_account_number        | NVARCHAR(20)   | Bank account number (Nullable)                |
+| performance_rating         | FLOAT(24)      | Performance rating (Default: 5)               |
+| employment_status          | INT            | Employment status (Cannot be NULL)            |
+| hire_date                 | DATETIME       | Date of hiring (Cannot be NULL)               |
+| departure_date            | DATE           | Date of departure (Nullable)                  |
+| user_id                   | INT            | Identifier for the associated user (Cannot be NULL) |
+
+### Constraints
+- `staff_id` is the primary key.
+- `person_id` is a foreign key referencing `People(person_id)`.
+- ` department_id` is a foreign key referencing `Departments(department_id)`.
+- `position_id` is a foreign key referencing `Position(position_id)`.
+- `manager_id` is a foreign key referencing `Staff(staff_id)`.
+- `user_id` is a foreign key referencing `Users(user_id)`.
+
+---
+
+## 21. Departments Table
+
+### Purpose
+The `Departments` table categorizes different departments within the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| department_id             | INT            | Unique identifier for each department (Primary Key) |
+| department_name           | NVARCHAR(255)  | Name of the department (Cannot be NULL)      |
+| department_head           | INT            | Identifier for the head of the department (Nullable) |
+| email                     | NVARCHAR(255)  | Email address for the department (Nullable)  |
+| budget                    | MONEY          | Budget allocated for the department (Cannot be NULL) |
+| location                  | NVARCHAR(255)  | Location of the department (Nullable)        |
+
+### Constraints
+- `department_id` is the primary key.
+- `department_head` is a foreign key referencing `Staff(staff_id)`.
+
+---
+
+## 22. Position Table
+
+### Purpose
+The `Position` table defines various job positions available within the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| position_id               | INT            | Unique identifier for each position (Primary Key) |
+| title                     | NVARCHAR(255)  | Title of the position (Cannot be NULL)       |
+| department_id             | INT            | Identifier for the associated department (Cannot be NULL) |
+| salary_min                | MONEY          | Minimum salary for the position (Cannot be NULL) |
+| salary_max                | MONEY          | Maximum salary for the position (Cannot be NULL) |
+| qualifications            | NVARCHAR(MAX)   | Qualifications required for the position (Nullable) |
+| responsibilities          | NVARCHAR(MAX)   | Responsibilities associated with the position (Nullable) |
+
+### Constraints
+- `position_id` is the primary key.
+- `department_id` is a foreign key referencing `Departments(department_id)`.
+
+---
+
+## 23. Phone Table
+
+### Purpose
+The `Phone` table stores phone numbers associated with individuals in the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| phone_id                  | INT            | Unique identifier for each phone entry (Primary Key) |
+| phone_number              | NVARCHAR(15)   | Phone number (Cannot be NULL)                |
+| person_id                 | INT            | Identifier for the associated person (Cannot be NULL) |
+| is_active                 | BIT            | Indicates if the phone number is active (Default: 1) |
+
+### Constraints
+- `phone_id` is the primary key.
+- `person_id` is a foreign key referencing `People(person_id)`.
+
+---
+
+## 24. Reservation Table
+
+### Purpose
+The `Reservation` table manages room reservations made by guests.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| reservation_id            | INT            | Unique identifier for each reservation (Primary Key) |
+| guest_id                  | INT            | Identifier for the associated guest (Cannot be NULL) |
+| room_id                   | INT            | Identifier for the reserved room (Cannot be NULL) |
+| check_in_date             | DATETIME       | Check-in date for the reservation (Cannot be NULL) |
+| check_out_date            | DATETIME       | Check-out date for the reservation (Cannot be NULL) |
+| actual_check_out_date     | DATETIME       | Actual check-out date (Nullable)             |
+| payment_id                | INT            | Identifier for the associated payment (Nullable) |
+
+### Constraints
+- `reservation_id` is the primary key.
+- `guest_id` is a foreign key referencing `Guests(guest_id)`.
+- `room_id` is a foreign key referencing `Rooms(room_id)`.
+- `payment_id` is a foreign key referencing `Payment(payment_id)`.
+
+---
+
+## 25. Payment Table
+
+### Purpose
+The `Payment` table records payment transactions made by guests.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| payment_id                | INT            | Unique identifier for each payment (Primary Key) |
+| reservation_id            | INT            | Identifier for the associated reservation (Cannot be NULL) |
+| guest_id                  | INT            | Identifier for the associated guest (Cannot be NULL) |
+| amount                    | MONEY          | Amount paid (Cannot be NULL)                 |
+ | payment_method_id        | INT            | Identifier for the payment method (Cannot be NULL) |
+| payment_status_id        | INT            | Identifier for the payment status (Cannot be NULL) |
+| card_type_id             | INT            | Identifier for the card type used (Cannot be NULL) |
+| payment_date             | DATETIME       | Date of the payment (Cannot be NULL)           |
+| currency_id              | INT            | Identifier for the currency used (Cannot be NULL) |
+| note                     | NVARCHAR(MAX)   | Additional notes regarding the payment (Nullable) |
+
+### Constraints
+- `payment_id` is the primary key.
+- `reservation_id` is a foreign key referencing `Reservation(reservation_id)`.
+- `guest_id` is a foreign key referencing `Guests(guest_id)`.
+- `payment_method_id` is a foreign key referencing `Payment_Methods(payment_method_id)`.
+- `payment_status_id` is a foreign key referencing `Payment_Status(status_id)`.
+- `card_type_id` is a foreign key referencing `Card_Types(card_type_id)`.
+- `currency_id` is a foreign key referencing `Currencies(currency_id)`.
+- `amount` must be non-negative.
+
+---
+
+## Indexing in the Database
+
+Indexing is a crucial aspect of database design that enhances the performance of queries by allowing the database management system to find and retrieve data more efficiently. In this database schema, several indexes have been created to optimize query performance, particularly for fields that are frequently used in search conditions or join operations.
+
+### Key Indexes
+- **People Table**: 
+  - `idx_people_email`: A unique non-clustered index on the `email` field to ensure that email addresses are unique and to speed up lookups by email.
+  - `idx_first_name`: A non-clustered index on the `first_name` field to improve search performance for first names.
+  - `idx_last_name`: A non-clustered index on the `last_name` field to enhance search performance for last names.
+
+- **Users Table**: 
+  - `idx_username`: A non-clustered index on the `username` field to ensure quick access to user accounts by username.
+
+- **Guests Table**: 
+  - `idx_person_id`: A non-clustered index on the `person_id` field to optimize join operations with the `People` table.
+
+- **Staff Table**: 
+  - `idx_person_id`: A non-clustered index on the `person_id` field to improve performance for queries involving staff members.
+
+- **Phone Table**: 
+  - `idx_person_id`: A non-clustered index on the `person_id` field to facilitate quick lookups of phone numbers associated with individuals.
+
+- **Reservation Table**: 
+  - `idx_person_id`: A non-clustered index on the `person_id` field to enhance performance for queries related to reservations.
+
+By implementing these indexes, the database can handle larger datasets and more complex queries efficiently, ensuring a responsive experience for users interacting with the hotel management system. ```markdown
+# Database Design Documentation
+
+This documentation outlines the design and purpose of each table within the database schema, including field names, data types, purposes, constraints, and foreign keys. The database is designed to support a hotel management system, managing various aspects such as users, guests, rooms, services, payments, and staff.
+
+## 1. Countries Table
+
+### Purpose
+The `Countries` table stores information about different countries, which can be referenced in other tables.
+
+### Fields
+| Field Name     | Data Type     | Purpose                                        |
+|----------------|----------------|------------------------------------------------|
+| country_id     | INT            | Unique identifier for each country (Primary Key) |
+| name           | NVARCHAR(255)  | Name of the country (Cannot be NULL)         |
+| country_code   | NVARCHAR(10)   | Short code representing the country (Cannot be NULL) |
+| iso_code       | NVARCHAR(10)   | ISO code for the country (Cannot be NULL)    |
+
+### Constraints
+- `country_id` is the primary key.
+
+---
+
+## 2. ID Proof Types Table
+
+### Purpose
+The `id_proof_types` table stores different types of identification proofs that can be associated with people.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| id_proof_type_id   | INT            | Unique identifier for each proof type (Primary Key) |
+| proof_type_name     | NVARCHAR(255)  | Name of the proof type (Cannot be NULL)      |
+
+### Constraints
+- `id_proof_type_id` is the primary key.
+
+---
+
+## 3. User Types Table
+
+### Purpose
+The `User _Types` table defines different user roles within the system, including their permissions.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| user_type_id       | INT            | Unique identifier for each user type (Primary Key) |
+| type_name          | NVARCHAR(255)  | Name of the user type (Cannot be NULL)       |
+| description        | NVARCHAR(MAX)   | Description of the user type (Nullable)      |
+| permissions        | BIGINT         | Bitwise representation of permissions (Cannot be NULL) |
+
+### Constraints
+- `user_type_id` is the primary key.
+
+---
+
+## 4. Communication Ways Table
+
+### Purpose
+The `Communication_Ways` table stores different methods of communication that can be preferred by guests.
+
+### Fields
+| Field Name               | Data Type     | Purpose                                       |
+|--------------------------|----------------|-----------------------------------------------|
+| communication_way_id     | INT            | Unique identifier for each communication method (Primary Key) |
+| communication_name       | NVARCHAR(255)  | Name of the communication method (Cannot be NULL, Unique) |
+
+### Constraints
+- `communication_way_id` is the primary key.
+- `communication_name` must be unique.
+
+---
+
+## 5. Loyalty Tiers Table
+
+### Purpose
+The `Loyalty_Tiers` table defines different loyalty tiers for guests based on their points.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| loyalty_tier_id    | INT            | Unique identifier for each loyalty tier (Primary Key) |
+| tier_name          | NVARCHAR(255)  | Name of the loyalty tier (Cannot be NULL)    |
+| min_points         | INT            | Minimum points required to qualify for the tier (Cannot be NULL) |
+
+### Constraints
+- `loyalty_tier_id` is the primary key.
+
+---
+
+## 6. Services Table
+
+### Purpose
+The `Services` table stores information about various services offered by the hotel.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| service_id         | INT            | Unique identifier for each service (Primary Key) |
+| service_name       | NVARCHAR(255)  | Name of the service (Cannot be NULL)         |
+| description        | NVARCHAR(MAX)   | Description of the service (Nullable)        |
+| price_usd          | SMALLMONEY      | Price of the service in USD (Cannot be NULL) |
+
+### Constraints
+- `service_id` is the primary key.
+
+---
+
+## 7. Bed Types Table
+
+### Purpose
+The `bed_types` table defines different types of beds available in the hotel.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| bed_type_id        | INT            | Unique identifier for each bed type (Primary Key) |
+| type_name          | NVARCHAR(255)  | Name of the bed type (Cannot be NULL) |
+| description        | NVARCHAR(MAX)   | Description of the bed type (Nullable)       |
+| capacity           | SMALLINT        | Maximum number of guests the bed can accommodate (Cannot be NULL) |
+
+### Constraints
+- `bed_type_id` is the primary key.
+- `capacity` must be greater than 0.
+
+---
+
+## 8. Employee Types Table
+
+### Purpose
+The `Employee_Types` table categorizes different types of employees within the hotel.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| employee_type_id   | INT            | Unique identifier for each employee type (Primary Key) |
+| type_name          | NVARCHAR(255)  | Name of the employee type (Cannot be NULL)   |
+| description        | NVARCHAR(MAX)   | Description of the employee type (Nullable)  |
+
+### Constraints
+- `employee_type_id` is the primary key.
+
+---
+
+## 9. Room Status Table
+
+### Purpose
+The `room_status` table tracks the current status of each room in the hotel.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| room_status_id     | INT            | Unique identifier for each room status (Primary Key) |
+| status             | NVARCHAR(255)  | Current status of the room (Cannot be NULL)  |
+| description        | NVARCHAR(MAX)   | Description of the room status (Nullable)    |
+
+### Constraints
+- `room_status_id` is the primary key.
+
+---
+
+## 10. Payment Methods Table
+
+### Purpose
+The `Payment_Methods` table stores various methods of payment accepted by the hotel.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| payment_method_id   | INT            | Unique identifier for each payment method (Primary Key) |
+| method_name        | NVARCHAR(255)  | Name of the payment method (Cannot be NULL)  |
+| description        | NVARCHAR(MAX)   | Description of the payment method (Nullable)  |
+
+### Constraints
+- `payment_method_id` is the primary key.
+
+---
+
+## 11. Payment Status Table
+
+### Purpose
+The `Payment_Status` table defines the various statuses a payment can have.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| status_id          | INT            | Unique identifier for each payment status (Primary Key) |
+| status_name        | NVARCHAR(255)  | Name of the payment status (Cannot be NULL)  |
+| description        | NVARCHAR(MAX)   | Description of the payment status (Nullable)  |
+
+### Constraints
+- `status_id` is the primary key.
+
+---
+
+## 12. Card Types Table
+
+### Purpose
+The `Card_Types` table stores information about different types of credit/debit cards accepted.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| card_type_id       | INT            | Unique identifier for each card type (Primary Key) |
+| card_name          | NVARCHAR(255)  | Name of the card type (Cannot be NULL)       |
+| description        | NVARCHAR(MAX)   | Description of the card type (Nullable)      |
+
+### Constraints
+- `card_type_id` is the primary key.
+
+---
+
+## 13. Currencies Table
+
+### Purpose
+The `Currencies` table defines the various currencies accepted by the hotel.
+
+### Fields
+| Field Name         | Data Type     | Purpose                                       |
+|--------------------|----------------|-----------------------------------------------|
+| currency_id        | INT            | Unique identifier for each currency (Primary Key) |
+| currency_name      | NVARCHAR(255)  | Name of the currency (Cannot be NULL)        |
+| currency_code      | NVARCHAR(10)   | Short code representing the currency (Cannot be NULL, Unique) |
+
+### Constraints
+- `currency_id` is the primary key.
+
+---
+
+## 14. People Table
+
+### Purpose
+The `People` table stores personal information about individuals associated with the hotel, including guests and staff.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| person_id                 | INT            | Unique identifier for each person (Primary Key) |
+| first_name                | NVARCHAR(255)  | First name of the person (Cannot be NULL)   |
+| second_name               | NVARCHAR(255)  | Second name of the person (Nullable)         |
+| third_name                | NVARCHAR(255)  | Third name of the person (Nullable)          |
+| last_name                 | NVARCHAR(255)  | Last name of the person (Cannot be NULL) |
+| email                     | NVARCHAR(255)  | Email address of the person (Nullable)      |
+| date_of_birth             | DATE           | Date of birth of the person (Nullable)      |
+| id_proof_type_id         | INT            | Identifier for the type of ID proof (Cannot be NULL) |
+| id_proof_type_number      | NVARCHAR(255)  | Unique ID proof number (Cannot be NULL, Unique) |
+| country_id                | INT            | Identifier for the country (Cannot be NULL) |
+
+### Constraints
+- `person_id` is the primary key.
+- `id_proof_type_id` is a foreign key referencing `id_proof_types(id_proof_type_id)`.
+- `country_id` is a foreign key referencing `Countries(country_id)`.
+
+---
+
+## 15. Users Table
+
+### Purpose
+The `Users` table manages user accounts for the hotel management system.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| user_id                   | INT            | Unique identifier for each user (Primary Key) |
+| username                  | NVARCHAR(255)  | Unique username for the user (Cannot be NULL) |
+| password_hash             | NVARCHAR(255)  | Hashed password for the user (Cannot be NULL) |
+| is_active                 | BIT            | Indicates if the account is active (Default: 1) |
+| last_login                | DATETIME       | Timestamp of the last login (Nullable)      |
+| account_locked            | BIT            | Indicates if the account is locked (Default: 0) |
+| account_locked_until      | DATETIME       | Timestamp until which the account is locked (Nullable) |
+| person_id                 | INT            | Identifier for the associated person (Nullable) |
+| user_type_id              | INT            | Identifier for the user type (Cannot be NULL) |
+
+### Constraints
+- `user_id` is the primary key.
+- `person_id` is a foreign key referencing `People(person_id)`.
+- `user_type_id` is a foreign key referencing `User _Types(user_type_id)`.
+
+---
+
+## 16. Room Types Table
+
+### Purpose
+The `Room_Types` table defines the various types of rooms available in the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| room_type_id              | INT            | Unique identifier for each room type (Primary Key) |
+| bed_type_id               | INT            | Identifier for the type of bed (Cannot be NULL) |
+| capacity                  | SMALLINT       | Maximum number of guests the room can accommodate (Cannot be NULL) |
+| wifi                      | BIT            | Indicates if Wi-Fi is available (Default: 0) |
+| internet_speed_MB         | FLOAT(24)      | Internet speed in MB (Nullable)              |
+| tv                        | BIT            | Indicates if a TV is available (Default: 0) |
+| work_desk                 | BIT            | Indicates if a work desk is available (Default: 0) |
+| balcony                   | BIT            | Indicates if a balcony is available (Default: 0) |
+| refrigerator              | BIT            | Indicates if a refrigerator is available (Default: 0) |
+| coffee_maker              | BIT            | Indicates if a coffee maker is available (Default: 0) |
+| safe                      | BIT            | Indicates if a safe is available (Default: 0) |
+| room_orientation          | NVARCHAR(255)  | Orientation of the room (Nullable)          |
+| base_price_rate           | SMALLMONEY      | Base price rate for the room (Cannot be NULL) |
+
+### Constraints
+- `room_type_id` is the primary key.
+- `bed_type_id` is a foreign key referencing `bed_types(bed_type_id)`.
+- `capacity` must be greater than 0.
+
+---
+
+## 17. Guests Table
+
+### Purpose
+The `Guests` table stores information about guests staying at the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| guest_id                  | INT            | Unique identifier for each guest (Primary Key) |
+| person_id                 | INT            | Identifier for the associated person (Cannot be NULL) |
+| loyalty_tier_id           | INT            | Identifier for the loyalty tier (Nullable)   |
+| loyalty_points            | INT            | Points accumulated by the guest (Default: 0) |
+| total_stays               | INT            | Total number of stays by the guest (Default: 0) |
+| preferred_room_type_id    | INT            | Identifier for the preferred room type (Nullable) |
+| last_stay_date | DATE           | Date of the last stay (Nullable)              |
+| communication_preference_id| INT            | Identifier for the preferred communication method (Nullable) |
+| is_vip                    | BIT            | Indicates if the guest is a VIP (Default: 0) |
+| user_id                   | INT            | Identifier for the associated user (Cannot be NULL) |
+
+### Constraints
+- `guest_id` is the primary key.
+- `person_id` is a foreign key referencing `People(person_id)`.
+- `loyalty_tier_id` is a foreign key referencing `Loyalty_Tiers(loyalty_tier_id)`.
+- `preferred_room_type_id` is a foreign key referencing `Room_Types(room_type_id)`.
+- `communication_preference_id` is a foreign key referencing `Communication_Ways(communication_way_id)`.
+- `user_id` is a foreign key referencing `Users(user_id)`.
+
+---
+
+## 18. Loyalty Benefits Table
+
+### Purpose
+The `Loyalty_Benefits` table defines the benefits associated with different loyalty tiers.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| benefit_id                | INT            | Unique identifier for each benefit (Primary Key) |
+| loyalty_tier_id           | INT            | Identifier for the associated loyalty tier (Cannot be NULL) |
+| service_id                | INT            | Identifier for the associated service (Cannot be NULL) |
+| discount_percentage        | FLOAT(24)      | Discount percentage offered (Cannot be NULL) |
+| points                    | INT            | Points required to avail the benefit (Cannot be NULL) |
+
+### Constraints
+- `benefit_id` is the primary key.
+- `loyalty_tier_id` is a foreign key referencing `Loyalty_Tiers(loyalty_tier_id)`.
+- `service_id` is a foreign key referencing `Services(service_id)`.
+- `discount_percentage` must be between 0 and 100.
+
+---
+
+## 19. Rooms Table
+
+### Purpose
+The `Rooms` table stores information about the individual rooms available in the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| room_id                   | INT            | Unique identifier for each room (Primary Key) |
+| room_type_id              | INT            | Identifier for the type of room (Cannot be NULL) |
+| capacity                  | SMALLINT       | Maximum number of guests the room can accommodate (Cannot be NULL) |
+| floor                     | SMALLINT       | Floor number where the room is located (Cannot be NULL) |
+| room_status_id            | INT            | Identifier for the current status of the room (Cannot be NULL) |
+
+### Constraints
+- `room_id` is the primary key.
+- `room_type_id` is a foreign key referencing `Room_Types(room_type_id)`.
+- `room_status_id` is a foreign key referencing `room_status(room_status_id)`.
+- `capacity` must be greater than 0.
+- `floor` must be non-negative.
+
+---
+
+## 20. Staff Table
+
+### Purpose
+The `Staff` table stores information about hotel staff members.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| staff_id                  | INT            | Unique identifier for each staff member (Primary Key) |
+| person_id                 | INT            | Identifier for the associated person (Cannot be NULL) |
+| department_id             | INT            | Identifier for the department (Nullable)     |
+| position_id               | INT            | Identifier for the position (Cannot be NULL) |
+| manager_id                | INT            | Identifier for the manager (Nullable)        |
+| salary                    | SMALLMONEY      | Salary of the staff member (Cannot be NULL)  |
+| employee_type_id          | INT            | Identifier for the employee type (Cannot be NULL) |
+| emergency_contact_phone    | NVARCHAR(15)   | Emergency contact phone number (Nullable)    |
+| bank_account_number        | NVARCHAR(20)   | Bank account number (Nullable)                |
+| performance_rating         | FLOAT(24)      | Performance rating (Default: 5)               |
+| employment_status          | INT            | Employment status (Cannot be NULL)            |
+| hire_date                 | DATETIME       | Date of hiring (Cannot be NULL)               |
+| departure_date            | DATE           | Date of departure (Nullable)                  |
+| user_id                   | INT            | Identifier for the associated user (Cannot be NULL) |
+
+### Constraints
+- `staff_id` is the primary key.
+- `person_id` is a foreign key referencing `People(person_id)`.
+- `department_id` is a foreign key referencing `Departments(department _id)`.
+- `position_id` is a foreign key referencing `Position(position_id)`.
+- `manager_id` is a foreign key referencing `Staff(staff_id)`.
+- `user_id` is a foreign key referencing `Users(user_id)`.
+
+---
+
+## 21. Departments Table
+
+### Purpose
+The `Departments` table categorizes different departments within the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| department_id             | INT            | Unique identifier for each department (Primary Key) |
+| department_name           | NVARCHAR(255)  | Name of the department (Cannot be NULL)      |
+| department_head           | INT            | Identifier for the head of the department (Nullable) |
+| email                     | NVARCHAR(255)  | Email address for the department (Nullable)  |
+| budget                    | MONEY          | Budget allocated for the department (Cannot be NULL) |
+| location                  | NVARCHAR(255)  | Location of the department (Nullable)        |
+
+### Constraints
+- `department_id` is the primary key.
+- `department_head` is a foreign key referencing `Staff(staff_id)`.
+
+---
+
+## 22. Position Table
+
+### Purpose
+The `Position` table defines various job positions available within the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| position_id               | INT            | Unique identifier for each position (Primary Key) |
+| title                     | NVARCHAR(255)  | Title of the position (Cannot be NULL)       |
+| department_id             | INT            | Identifier for the associated department (Cannot be NULL) |
+| salary_min                | MONEY          | Minimum salary for the position (Cannot be NULL) |
+| salary_max                | MONEY          | Maximum salary for the position (Cannot be NULL) |
+| qualifications            | NVARCHAR(MAX)   | Qualifications required for the position (Nullable) |
+| responsibilities          | NVARCHAR(MAX)   | Responsibilities associated with the position (Nullable) |
+
+### Constraints
+- `position_id` is the primary key.
+- `department_id` is a foreign key referencing `Departments(department_id)`.
+
+---
+
+## 23. Phone Table
+
+### Purpose
+The `Phone` table stores phone numbers associated with individuals in the hotel.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| phone_id                  | INT            | Unique identifier for each phone entry (Primary Key) |
+| phone_number              | NVARCHAR(15)   | Phone number (Cannot be NULL)                |
+| person_id                 | INT            | Identifier for the associated person (Cannot be NULL) |
+| is_active                 | BIT            | Indicates if the phone number is active (Default: 1) |
+
+### Constraints
+- `phone_id` is the primary key.
+- `person_id` is a foreign key referencing `People(person_id)`.
+
+---
+
+## 24. Reservation Table
+
+### Purpose
+The `Reservation` table manages room reservations made by guests.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| reservation_id            | INT            | Unique identifier for each reservation (Primary Key) |
+| guest_id                  | INT            | Identifier for the associated guest (Cannot be NULL) |
+| room_id                   | INT            | Identifier for the reserved room (Cannot be NULL) |
+| check_in_date             | DATETIME       | Check-in date for the reservation (Cannot be NULL) |
+| check_out_date            | DATETIME       | Check-out date for the reservation (Cannot be NULL) |
+| actual_check_out_date     | DATETIME       | Actual check-out date (Nullable)             |
+| payment_id                | INT            | Identifier for the associated payment (Nullable) |
+
+### Constraints
+- `reservation_id` is the primary key.
+- `guest_id` is a foreign key referencing `Guests(guest_id)`.
+- `room_id` is a foreign key referencing `Rooms(room_id)`.
+- `payment_id` is a foreign key referencing `Payment(payment_id)`.
+
+---
+
+## 25. Payment Table
+
+### Purpose
+The `Payment` table records payment transactions made by guests.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| payment_id                | INT            | Unique identifier for each payment (Primary Key) |
+| reservation_id            | INT            | Identifier for the associated reservation (Cannot be NULL) |
+| guest_id                  | INT            | Identifier for the associated guest (Cannot be NULL) |
+| amount                    | MONEY          | Amount paid (Cannot be NULL)                 |
+| payment_method_id         | INT            | Identifier for the ## 25. Payment Table
+
+### Purpose
+The `Payment` table records payment transactions made by guests.
+
+### Fields
+| Field Name                | Data Type     | Purpose                                       |
+|---------------------------|----------------|-----------------------------------------------|
+| payment_id                | INT            | Unique identifier for each payment (Primary Key) |
+| reservation_id            | INT            | Identifier for the associated reservation (Cannot be NULL) |
+| guest_id                  | INT            | Identifier for the associated guest (Cannot be NULL) |
+| amount                    | MONEY          | Amount paid (Cannot be NULL)                 |
+| payment_method_id         | INT            | Identifier for the payment method (Cannot be NULL) |
+| payment_status_id         | INT            | Identifier for the payment status (Cannot be NULL) |
+| card_type_id              | INT            | Identifier for the card type used (Cannot be NULL) |
+| payment_date              | DATETIME       | Date of the payment (Cannot be NULL)           |
+| currency_id               | INT            | Identifier for the currency used (Cannot be NULL) |
+| note                      | NVARCHAR(MAX)   | Additional notes regarding the payment (Nullable) |
+
+### Constraints
+- `payment_id` is the primary key.
+- `reservation_id` is a foreign key referencing `Reservation(reservation_id)`.
+- `guest_id` is a foreign key referencing `Guests(guest_id)`.
+- `payment_method_id` is a foreign key referencing `Payment_Methods(payment_method_id)`.
+- `payment_status_id` is a foreign key referencing `Payment_Status(status_id)`.
+- `card_type_id` is a foreign key referencing `Card_Types(card_type_id)`.
+- `currency_id` is a foreign key referencing `Currencies(currency_id)`.
+- `amount` must be non-negative.
+
+---
+
+## Indexing in the Database
+
+Indexing is a crucial aspect of database design that enhances the performance of queries by allowing the database management system to find and retrieve data more efficiently. In this database schema, several indexes have been created to optimize query performance, particularly for fields that are frequently used in search conditions or join operations.
+
+### Key Indexes
+- **People Table**: 
+  - `idx_people_email`: A unique non-clustered index on the `email` field to ensure that email addresses are unique and to speed up lookups by email.
+  - `idx_first_name`: A non-clustered index on the `first_name` field to improve search performance for first names.
+  - `idx_last_name`: A non-clustered index on the `last_name` field to enhance search performance for last names.
+
+- **Users Table**: 
+  - `idx_username`: A non-clustered index on the `username` field to ensure quick access to user accounts by username.
+
+- **Guests Table**: 
+  - `idx_person_id`: A non-clustered index on the `person_id` field to optimize join operations with the `People` table.
+
+- **Staff Table**: 
+  - `idx_person_id`: A non-clustered index on the `person_id` field to improve performance for queries involving staff members.
+
+- **Phone Table**: 
+  - `idx_person_id`: A non-clustered index on the `person_id` field to facilitate quick lookups of phone numbers associated with individuals.
+
+- **Reservation Table**: 
+  - `idx_person_id`: A non-clustered index on the `person_id` field to enhance performance for queries related to reservations.
+
+By implementing these indexes, the database can handle larger datasets and more complex queries efficiently, ensuring a responsive experience for users interacting with the hotel management system.
