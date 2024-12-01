@@ -116,7 +116,9 @@ CREATE TABLE Card_Types (
 CREATE TABLE Currencies (
     currency_id INT PRIMARY KEY IDENTITY(1,1),
     currency_name NVARCHAR(255) NOT NULL,
-    currency_code NVARCHAR(10) NOT NULL UNIQUE
+    currency_code NVARCHAR(10) NOT NULL,
+
+	CONSTRAINT UC_currency Unique (currency_name , currency_code)
 );
 
 --==================================================================================================
@@ -215,15 +217,15 @@ CREATE TABLE Room_Types (
 -- Create Guests Table
 CREATE TABLE Guests (
     guest_id		INT PRIMARY KEY IDENTITY(1,1),	
-    person_id		INT NOT NULL ,				-- Indexed For Joined Query Preformance
+    person_id		INT			NOT NULL ,		-- Indexed For Joined Query Preformance
     loyalty_tier_id INT,
     loyalty_points	INT DEFAULT 0,				-- When creating a guest it's his first stay so he won't have loyalty points
     total_stays		INT DEFAULT 0,				-- When creating a guest it's his first stay
-    preferred_room_type_id INT,
-    last_stay_date	DATE,
+    preferred_room_type_id INT	NULL,
+    last_stay_date	DATE		NULL,
     communication_preference_id INT,
     is_vip			BIT DEFAULT 0,				-- Using BIT for boolean values 0 is False
-    user_id			INT NOT NULL,
+    user_id			INT			NULL,
 
 -- FOREIGN KEY Constraints
     CONSTRAINT FK_Guests_Person				FOREIGN KEY (person_id)						REFERENCES People(person_id),
@@ -448,3 +450,251 @@ Alter Table Reservation
 add CONSTRAINT FK_Reservation_Payment	FOREIGN KEY (payment_id)	REFERENCES Payment(payment_id)
 
 -- End of Database Creation Script
+
+
+
+
+
+--====================================================================================================
+--=============================[		Insert Statments		]=====================================
+
+
+-- NOTE
+-- I got some data from a dataset like (countries, currencies)
+-- but i left an insert statment of all the countries on Github If needed
+
+-- And this is how i got the insert statment on the Github
+-- select insert_statment = '(''' + name + ''' , '''+ iso_code + ''' , '''+iso_code+'''),' from Countries
+
+
+
+-------------------------------------------------------------------------------------------------
+
+-- normale insert 
+
+
+INSERT INTO bed_types (type_name, description, capacity) 
+VALUES 
+('Platform Bed'			, 'A bed with a solid or slatted base that supports a mattress without the need for a box spring.', 2),
+('Canopy Bed'			, 'A bed with posts at each corner extending upwards, often draped with fabric.', 2),
+('Sleigh Bed'			, 'A bed characterized by curved or scrolled headboards and footboards.', 2),
+('Four-Poster Bed'		, 'A bed with four vertical posts, often without fabric draping.', 2),
+('Daybed'				, 'A versatile piece that can serve as a sofa or a bed, often with a twin mattress.', 1);
+
+
+INSERT INTO Card_types (card_name, description) VALUES 
+('Visa', 'A widely accepted credit card known for its reliability and security.'),
+('MasterCard', 'A popular credit card that offers various benefits and rewards.'),
+('American Express', 'A premium credit card known for its travel rewards and customer service.');
+
+INSERT INTO Communication_Ways (communication_name) VALUES 
+('Phone'),
+('Email'),
+('SMS/Text Messaging'),
+('In-Person Communication'),
+('Chat (Live Chat)'),
+('Social Media'),
+('Website Contact Form'),
+('Mobile App Notifications'),
+('Video Conferencing'),
+('Fax');
+
+INSERT INTO Departments (department_name, email, budget, location) VALUES 
+('Front Office', 'frontoffice@hotel.com', 200000.00, 'Main Lobby'),
+('Housekeeping', 'housekeeping@hotel.com', 150000.00, 'Ground Floor'),
+('Food and Beverage', 'fandb@hotel.com', 300000.00, 'Restaurant Level'),
+('Sales and Marketing', 'sales@hotel.com', 250000.00, 'Office Block'),
+('Human Resources', 'hr@hotel.com', 100000.00, 'Admin Wing'),
+('Finance', 'finance@hotel.com', 120000.00, 'Finance Department'),
+('Maintenance', 'maintenance@hotel.com', 80000.00, 'Service Area'),
+('IT Department', 'it@hotel.com', 90000.00, 'Tech Hub'),
+('Spa and Wellness', 'spa@hotel.com', 70000.00, 'Spa Level'),
+('Security', 'security@hotel.com', 60000.00, 'Main Entrance');
+
+
+INSERT INTO Employee_Types (type_name, description) VALUES 
+('Full-Time', 'Employees who work a standard number of hours per week, typically 40 hours.'),
+('Part-Time', 'Employees who work fewer hours than full-time employees, often on a flexible schedule.'),
+('Temporary', 'Employees hired for a specific period or project, often to cover peak seasons.'),
+('Intern', 'Students or recent graduates who work temporarily to gain practical experience.'),
+('Contractor', 'Self-employed individuals or companies hired to perform specific tasks or projects.'),
+('Seasonal', 'Employees hired during peak seasons, such as summer or holidays, to meet increased demand.'),
+('Manager', 'Employees responsible for overseeing specific departments or operations within the hotel.'),
+('Staff', 'General employees who perform various operational tasks within the hotel.'),
+('Executive', 'High-level employees responsible for strategic decision-making and overall management.'),
+('Culinary', 'Employees who work in the kitchen, including chefs and kitchen staff.');
+
+
+INSERT INTO id_proof_types (proof_type_name) VALUES 
+('Passport'),
+('Driver''s License'),
+('National ID Card'),
+('Voter ID'),
+('Employee ID'),
+('Student ID'),
+('Utility Bill'),
+('Bank Statement');
+
+INSERT INTO User_Types (type_name, description, permissions) VALUES 
+('Admin', 'Users with full access to all system features and settings.', 1),  -- permissions as a binary flag
+('Staff', 'Regular staff members with access to operational features.', 2),
+('Guest', 'Users who can book and manage their reservations.', 4),
+('Manager', 'Users who oversee specific departments and have managerial access.', 8),
+('Maintenance', 'Users responsible for maintenance tasks with limited access.', 16),
+('Housekeeping', 'Users who manage room cleaning and maintenance tasks.', 32);
+
+INSERT INTO Loyalty_Tiers (tier_name, min_points) VALUES 
+('Bronze', 0),
+('Silver', 1000),
+('Gold', 5000),
+('Platinum', 10000),
+('Diamond', 20000);
+
+INSERT INTO Services (service_name, description, price_usd) VALUES 
+('Room Service', '24-hour room service with a variety of dining options.', 15.00),
+('Spa Treatment', 'Relaxing spa services including massages and facials.', 100.00),
+('Airport Shuttle', 'Transportation to and from the airport.', 30.00),
+('Laundry Service', 'Same-day laundry and dry cleaning services.', 20.00),
+('Concierge Services', 'Personalized assistance for reservations and recommendations.', 10.00),
+('Gym Access', 'Access to the hotel gym and fitness facilities.', 5.00);
+
+INSERT INTO room_status (status, description) VALUES 
+('Available', 'Room is available for booking.'),
+('Occupied', 'Room is currently occupied by a guest.'),
+('Under Maintenance', 'Room is undergoing maintenance and cannot be booked.'),
+('Clean', 'Room has been cleaned and is ready for the next guest.'),
+('Dirty', 'Room needs cleaning after guest checkout.'),
+('Reserved', 'Room has been reserved but not yet checked in.');
+
+INSERT INTO Payment_Methods (method_name, description) VALUES 
+('Credit Card', 'Payment made using a credit card.'),
+('Debit Card', 'Payment made using a debit card.'),
+('Cash', 'Payment made in cash at the hotel.'),
+('Online Payment', 'Payment made through online banking or payment gateways.'),
+('Mobile Payment', 'Payment made using mobile payment applications (e.g., Apple Pay, Google Pay).');
+
+INSERT INTO Payment_Status (status_name, description) VALUES 
+('Pending', 'Payment is pending and has not been completed.'),
+('Completed', 'Payment has been successfully completed.'),
+('Failed', 'Payment attempt has failed.'),
+('Refunded', 'Payment has been refunded to the guest.'),
+('Cancelled', 'Payment has been cancelled by the guest or the hotel.');
+
+INSERT INTO Room_Types (bed_type_id, capacity, wifi, internet_speed_MB, tv, work_desk, balcony, refrigerator, coffee_maker, safe, room_orientation, base_price_rate) VALUES 
+(1, 2, 1, 100.0, 1, 1, 1, 1, 1, 1, 'Ocean View', 150.00),
+(2, 4, 1, 50.0, 1, 1, 0, 1, 1, 1, 'City View', 250.00),
+(3, 1, 1, 10.0, 0, 0, 0, 0, 0, 1, 'Garden View', 100.00),
+(1, 3, 1, 75.0, 1, 1, 1, 0, 1, 0, 'Mountain View', 200.00),
+(2, 2, 0, NULL, 1, 0, 0, 1, 0, 1, 'Pool View', 180.00);
+
+
+INSERT INTO Loyalty_Benefits (loyalty_tier_id, service_id, discount_percentage, points) VALUES 
+(1, 1, 5.0, 100),  -- Bronze tier		benefit for Room Service
+(2, 2, 10.0, 200), -- Silver tier		benefit for Spa Treatment
+(3, 3, 15.0, 300), -- Gold tier			benefit for Airport Shuttle
+(4, 4, 20.0, 400), -- Platinum tier		benefit for Laundry Service
+(4, 5, 20.0, 400), -- Platinum tier		benefit for Concierge Service
+(5, 2, 25.0, 500), -- Diamond tier		benefit for Spa Services
+(5, 5, 25.0, 500); -- Diamond tier		benefit for Concierge Services
+
+
+INSERT INTO Rooms (room_type_id, capacity, floor, room_status_id) VALUES 
+(1, 2, 1, 1),  -- Room Type ID 1,	Capacity 2,		Floor 1,	Status ID 1 (Available)
+(2, 4, 2, 2),  -- Room Type ID 2,	Capacity 4,		Floor 2,	Status ID 2 (Occupied)
+(3, 1, 1, 3),  -- Room Type ID 3,	Capacity 1,		Floor 1,	Status ID 3 (Under Maintenance)
+(1, 3, 3, 4),  -- Room Type ID 1,	Capacity 3,		Floor 3,	Status ID 4 (Clean)
+(2, 2, 2, 5);  -- Room Type ID 2,	Capacity 2,		Floor 2,	Status ID 5 (Dirty)
+
+
+INSERT INTO People (first_name, second_name, third_name, last_name, email, date_of_birth, id_proof_type_id, id_proof_type_number, country_id) VALUES 
+('Ahmed', 'Ibrahim'	, NULL	, 'Sayed', 'ahmed.ibrahim@gmail.com', '2005-06-15', 1, 'A123456789', 1),  -- Ahmed Ibrahim Sayed
+('Ahmed', 'Bassem'	,NULL	, 'Ramadan', 'ahmed.bassem.ramadan@gmail.com', '2005-04-25', 2, 'B987654321', 2),  -- Ahmed Bassem Ramadan
+('Ahmed', 'Hegazy'	,NULL	, 'Abdel-Aal', 'ahmed.hegazy.abdel.aal@gmail.com', '2005-11-30', 1, 'C123123123', 3),  -- Ahmed Hegazy Abdel-Aal
+('Ahmed', 'Abdouh'	,NULL	, 'Mohamed', 'ahmed.abdouh.mohamed@gmail.com', '2005-01-20', 3, 'D987987987', 1),  -- Ahmed Abdouh Mohamed
+('Ahmed', 'Mahmoud'	,NULL	, 'Ahmed', 'ahmed.mahmoud.ahmed@gmail.com', '2005-09-05', 2, 'E456456456', 2),  -- Ahmed Mahmoud Ahmed
+('Ahmed', 'Eid'		, NULL	,'Ali', 'ahmed.eid.ali@gmail.com', '2005-02-14', 1, 'F123456789', 1),  -- Ahmed Eid Ali
+('El-Sayed', 'Mohamed',NULL	, 'Sayed', 'el.sayed.mohamed.sayed@gmail.com', '2005-05-10', 2, 'G987654321', 2),  -- El-Sayed Mohamed Sayed
+('Abrar', 'Mohamed'	,NULL	, 'Ahmed', 'abrar.mohamed.ahmed@gmail.com', '2005-07-20', 1, 'H123123123', 3),  -- Abrar Mohamed Ahmed
+('Esraa', 'Eid'		,NULL	, 'Abdel-Sattar', 'esraa.eid.abdel.sattar@gmail.com', '2005-03-15', 1, 'I987987987', 1),  -- Esraa Eid Abdel-Sattar
+('Esraa', 'Imad'	,NULL	, 'Abdel-Sattar', 'esraa.imad.abdel.sattar@gmail.com', '2005-12-30', 2, 'J456456456', 2);  -- Esraa Imad Abdel-Sattar
+
+INSERT INTO Users (username, password_hash, is_active, last_login, account_locked, account_locked_until, person_id, user_type_id) VALUES 
+('ahmedibrahimsayed', 'hashed_password_1', 1, NULL, 0, NULL, 1, 1),  
+('ahmedbassemramadan', 'hashed_password_2', 1, NULL, 0, NULL, 2, 2),  
+('ahmedhegazyabdelaal', 'hashed_password_3', 1, NULL, 0, NULL, 3, 1),  
+('ahmedabdouhmohamed', 'hashed_password_4', 1, NULL, 0, NULL, 4, 2),  
+('ahmedmahmoudahmed', 'hashed_password_5', 1, NULL, 0, NULL, 5, 1),  
+('ahmedeidali', 'hashed_password_6', 1, NULL, 0, NULL, 6, 2), 
+('elsayedmohamedsayed', 'hashed_password_7', 1, NULL, 0, NULL, 7, 1),  
+('abramohamedahmed', 'hashed_password_8', 1, NULL, 0, NULL, 8, 2),  
+('esraaeidabdesattar', 'hashed_password_9', 1, NULL, 0, NULL, 9 , 1), 
+('esraaimadabdesattar', 'hashed_password_10', 1, NULL, 0, NULL, 10, 2);
+
+
+INSERT INTO Guests (person_id, loyalty_tier_id, loyalty_points, total_stays, preferred_room_type_id, last_stay_date, communication_preference_id, is_vip, user_id) VALUES 
+(1, 1, 0, 0, 1, NULL, 1, 0, 1),  -- Guest for Ahmed Ibrahim Sayed
+(2, 2, 0, 0, 2, NULL, 2, 0, 2),  -- Guest for Ahmed Bassem Ramadan
+(3, 1, 0, 0, 1, NULL, 1, 0, 3),  -- Guest for Ahmed Hegazy Abdel-Aal
+(4, NULL, 0, 0, NULL, NULL, 1, 0, 4),  -- Guest for Ahmed Abdouh Mohamed
+(5, 3, 0, 0, 2, NULL, 2, 5, null),  -- Guest for Ahmed Mahmoud Ahmed
+(6, 1, 0, 0, 1, NULL, 1, 6, null),  -- Guest for Ahmed Eid Ali
+(7, 2, 0, 0, 2, NULL, 2, 7, null),  -- Guest for El-Sayed Mohamed Sayed
+(8, 1, 0, 0, 1, NULL, 1, 8, null),  -- Guest for Abrar Mohamed Ahmed
+(9, 1, 0, 0, 1, NULL, 1, 9, null),  -- Guest for Esraa Eid Abdel-Sattar
+(10, 2, 0, 0, 2, NULL, 2, 10, null);  -- Guest for Esraa Imad Abdel-Sattar
+
+INSERT INTO Position (title, department_id, salary_min, salary_max, qualifications, responsibilities) VALUES 
+('Front Desk Manager', 1, 3000.00, 5000.00, 'Bachelor''s degree in Hospitality Management', 'Oversee front desk operations, manage staff, and ensure guest satisfaction.'),
+('Housekeeping Supervisor', 2, 2000.00, 3500.00, 'High school diploma or equivalent', 'Supervise housekeeping staff and ensure cleanliness of guest rooms.'),
+('Sales Manager', 3, 4000.00, 7000.00, 'Bachelor''s degree in Marketing or Business', 'Develop sales strategies and manage relationships with corporate clients.'),
+('Chef', 4, 3500.00, 6000.00, 'Culinary degree or equivalent experience', 'Prepare meals, manage kitchen staff, and ensure food quality.'),
+('Maintenance Technician', 5, 2500.00, 4000.00, 'Technical certification or equivalent experience', 'Perform maintenance and repairs on hotel facilities.');
+
+
+
+INSERT INTO Phone (phone_number, person_id, is_active) VALUES 
+('123-456-7890', 1, 1),
+('0987654321', 2, 1),  
+('555-5555555', 3, 1), 
+('444444-4444', 4, 1), 
+('333-333-3333', 5, 1);
+
+
+INSERT INTO Reservation (guest_id, room_id, check_in_date, check_out_date, actual_check_out_date, payment_id) VALUES 
+(1, 1, '2024-12-01 15:00:00', '2024-12-12 11:00:00', NULL, NULL),  -- Reservation for guest 1 in room 101
+(2, 2, '2024-12-02 15:00:00', '2024-12-15 11:00:00', NULL, NULL),  -- Reservation for guest 2 in room 102
+(3, 3, '2024-12-03 15:00:00', '2024-12-12 11:00:00', NULL, NULL),  -- Reservation for guest 3 in room 103
+(4, 4, '2024-12-04 15:00:00', '2024-12-30 11:00:00', NULL, NULL),  -- Reservation for guest 4 in room 104
+(5, 5, '2024-12-05 15:00:00', '2024-12-12 11:00:00', NULL, NULL);  -- Reservation for guest 5 in room 105
+
+
+INSERT INTO Payment (reservation_id, guest_id, amount, payment_method_id, payment_status_id, card_type_id, payment_date, currency_id, note) VALUES 
+(1, 1, 500.00, 1, 1, 1, '2023-10-01 14:00:00', 1, 'Paid in full'),  -- Payment for reservation 1
+(2, 2, 600.00, 2, 1, 2, '2023-10-02 14:30:00', 1, 'Paid in full'),  -- Payment for reservation 2
+(3, 3, 700.00, 1, 1, 1, '2023-10-03 15:00:00', 1, 'Paid in full'),  -- Payment for reservation 3
+(4, 4, 800.00, 3, 1,  2, '2023-10-04 15:30:00', 1, 'Paid in full'),  -- Payment for reservation 4
+(5, 5, 900.00, 2, 1, 2, '2023-10-05 16:00:00', 1, 'Paid in full');  -- Payment for reservation 5
+
+INSERT INTO Staff (person_id, department_id, position_id, manager_id, salary, employee_type_id, emergency_contact_phone, bank_account_number, performance_rating, employment_status, hire_date, departure_date, user_id) VALUES 
+(1, 1, 1, NULL, 3000.00, 1, '123-456-7890', '1234567890123456', 4.5, 1, '2023-01-15', NULL, 1), 
+(2, 1, 2, 1, 2500.00, 1, '098-765-4321', '2345678901234567', 4.0, 1, '2023-02-01', NULL, 2), 
+(3, 2, 3, 1, 4000.00, 2, '555-555-5555', '3456789012345678', 5.0, 1, '2023-03-10', NULL, 3),  
+(4, 2, 4, 2, 3500.00, 1, '444-444-4444', '4567890123456789', 3.5, 1, '2023-04-20', NULL, 4), 
+(5, 3, 5, NULL, 4500.00, 2, '333-333-3333', '5678901234567890', 4.8, 1, '2023-05-25', NULL, 5); 
+
+
+
+
+----------------------------------------
+
+
+-- Get number of visits of each Country and sort them from the higher
+SELECT Countries.name, count(Countries.name) As Total_Visists
+FROM Countries 
+				INNER JOIN	People ON Countries.country_id	= People.country_id 
+				INNER JOIN  Guests ON People.person_id		= Guests.person_id
+GROUP BY Countries.name
+order by Total_Visists desc
+
+
+
