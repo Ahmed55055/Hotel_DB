@@ -88,7 +88,7 @@ CREATE TABLE bed_types (
 
 -- CONSTRAINT
 	CONSTRAINT PK_bed_types		Primary Key (bed_type_id),
-	CONSTRAINT CK_capacity		CHECK (capacity > 0)
+	CONSTRAINT CK_capacity		CHECK (capacity >= 1)
 );
 
 -- Create Employee Types Table
@@ -177,7 +177,7 @@ CREATE TABLE People (
 
 -- Indexing email
 -- Conditional index to be able to store multiple nullables in a unique field
--- why we need unique email 
+-- For more information check Documentation
 CREATE UNIQUE NONCLUSTERED INDEX idx_people_email ON People(email)
 WHERE email IS NOT NULL
 
@@ -198,7 +198,7 @@ CREATE TABLE Users (
     user_id			INT IDENTITY(1,1),
     username		NVARCHAR(255)	NOT NULL,
     password_hash	NVARCHAR(255)	NOT NULL,			-- Will be hashed inside Business Logic Layer
-    is_active		BIT				DEFAULT 1,			-- 1 Is true, 0 is false
+    is_active		BIT				DEFAULT 1,
     last_login		DATETIME		NULL,
     account_locked	BIT				DEFAULT 0,
     account_locked_until DATETIME	NULL,
@@ -215,7 +215,6 @@ CREATE TABLE Users (
 -- Indexies
 CREATE NONCLUSTERED INDEX idx_username
 ON Users (username);
-
 
 --------------------------------------------------------------------------------------------------
 
@@ -238,7 +237,7 @@ CREATE TABLE Room_Types (
 
 	-- CONSTRAINTs
 	CONSTRAINT PK_Room_Types			Primary Key (room_type_id),
-	CONSTRAINT CK_Room_Types_Capacity	CHECK		(capacity > 0), --capacity cant be 0 or negative
+	CONSTRAINT CK_Room_Types_Capacity	CHECK		(capacity >= 1),
     CONSTRAINT FK_RoomTypes_BedType		FOREIGN KEY (bed_type_id) REFERENCES bed_types(bed_type_id)
 );
 
@@ -316,7 +315,7 @@ CREATE TABLE Rooms (
 	CONSTRAINT PK_Rooms					Primary Key (room_id),
 
 	--Check
-	CONSTRAINT CK_Rooms_capacity		CHECK		(capacity > 0),	-- Capacity must be positive
+	CONSTRAINT CK_Rooms_capacity		CHECK		(capacity >= 1),	-- Capacity must be positive
 	CONSTRAINT CK_Floor					CHECK		(floor >= 0),	-- Floor must be non-negative
 
 	-- FOREIGN KEYs
@@ -515,14 +514,14 @@ add CONSTRAINT FK_Reservation_Payment	FOREIGN KEY (payment_id)	REFERENCES Paymen
 
 -- And this is how i got the insert statment on the Github
 -- select insert_statment = '(''' + name + ''' , '''+ iso_code + ''' , '''+iso_code+'''),' from Countries
-
+ select insert_statment = '(''' + currency_name + ''' , '''+ currency_code +'''),' from Currencies
 
 
 -------------------------------------------------------------------------------------------------
 
--- normale insert 
+-- Normal insert Statments
 
-
+-- Insert Bed Types
 INSERT INTO bed_types (type_name, description, capacity) 
 VALUES 
 ('Platform Bed'			, 'A bed with a solid or slatted base that supports a mattress without the need for a box spring.', 2),
@@ -532,11 +531,13 @@ VALUES
 ('Daybed'				, 'A versatile piece that can serve as a sofa or a bed, often with a twin mattress.', 1);
 
 
+-- Insert Payment Cards Types 
 INSERT INTO Card_types (card_name, description) VALUES 
 ('Visa', 'A widely accepted credit card known for its reliability and security.'),
 ('MasterCard', 'A popular credit card that offers various benefits and rewards.'),
 ('American Express', 'A premium credit card known for its travel rewards and customer service.');
 
+-- Insert Communication Way That is Avilable
 INSERT INTO Communication_Ways (communication_name) VALUES 
 ('Phone'),
 ('Email'),
@@ -549,6 +550,7 @@ INSERT INTO Communication_Ways (communication_name) VALUES
 ('Video Conferencing'),
 ('Fax');
 
+-- Insert Departments For Employees
 INSERT INTO Departments (department_name, email, budget, location) VALUES 
 ('Front Office', 'frontoffice@hotel.com', 200000.00, 'Main Lobby'),
 ('Housekeeping', 'housekeeping@hotel.com', 150000.00, 'Ground Floor'),
@@ -561,7 +563,7 @@ INSERT INTO Departments (department_name, email, budget, location) VALUES
 ('Spa and Wellness', 'spa@hotel.com', 70000.00, 'Spa Level'),
 ('Security', 'security@hotel.com', 60000.00, 'Main Entrance');
 
-
+-- Insert Employee's Types
 INSERT INTO Employee_Types (type_name, description) VALUES 
 ('Full-Time', 'Employees who work a standard number of hours per week, typically 40 hours.'),
 ('Part-Time', 'Employees who work fewer hours than full-time employees, often on a flexible schedule.'),
@@ -574,7 +576,7 @@ INSERT INTO Employee_Types (type_name, description) VALUES
 ('Executive', 'High-level employees responsible for strategic decision-making and overall management.'),
 ('Culinary', 'Employees who work in the kitchen, including chefs and kitchen staff.');
 
-
+-- Insert Identity proofing types
 INSERT INTO id_proof_types (proof_type_name) VALUES 
 ('Passport'),
 ('Driver''s License'),
@@ -585,6 +587,7 @@ INSERT INTO id_proof_types (proof_type_name) VALUES
 ('Utility Bill'),
 ('Bank Statement');
 
+-- Insert Users Types And Thier Default permissions
 INSERT INTO User_Types (type_name, description, permissions) VALUES 
 ('Admin', 'Users with full access to all system features and settings.', 1),  -- permissions as a binary flag
 ('Staff', 'Regular staff members with access to operational features.', 2),
@@ -593,6 +596,7 @@ INSERT INTO User_Types (type_name, description, permissions) VALUES
 ('Maintenance', 'Users responsible for maintenance tasks with limited access.', 16),
 ('Housekeeping', 'Users who manage room cleaning and maintenance tasks.', 32);
 
+-- Insert Loyalty Tiers
 INSERT INTO Loyalty_Tiers (tier_name, min_points) VALUES 
 ('Bronze', 0),
 ('Silver', 1000),
@@ -600,6 +604,7 @@ INSERT INTO Loyalty_Tiers (tier_name, min_points) VALUES
 ('Platinum', 10000),
 ('Diamond', 20000);
 
+-- Insert Services
 INSERT INTO Services (service_name, description, price_usd) VALUES 
 ('Room Service', '24-hour room service with a variety of dining options.', 15.00),
 ('Spa Treatment', 'Relaxing spa services including massages and facials.', 100.00),
@@ -608,6 +613,7 @@ INSERT INTO Services (service_name, description, price_usd) VALUES
 ('Concierge Services', 'Personalized assistance for reservations and recommendations.', 10.00),
 ('Gym Access', 'Access to the hotel gym and fitness facilities.', 5.00);
 
+-- the code is self descriptive i don't need to continue
 INSERT INTO room_status (status, description) VALUES 
 ('Available', 'Room is available for booking.'),
 ('Occupied', 'Room is currently occupied by a guest.'),
@@ -734,28 +740,578 @@ INSERT INTO Staff (person_id, department_id, position_id, manager_id, salary, em
 
 
 
-
+--SELECT QUERIES
 ----------------------------------------
+
+-- one of the reasons making an index for email to when the user try to reach thier email
+-- by login or some way else it uses index seek insead of full table scan
+SELECT People.first_name,People.last_name, Users.username, People.email
+FROM People JOIN
+   Users ON People.person_id = Users.person_id
+   where People.email = 'john.gonzalez@CAE942E0-60B4-4B53-B91D-ECEFB5630685.com';
 
 
 -- Get number of visits of each Country and sort them from the higher
 SELECT Countries.name, count(Countries.name) As Total_Visists
 FROM Countries 
-				INNER JOIN	People ON Countries.country_id	= People.country_id 
-				INNER JOIN  Guests ON People.person_id		= Guests.person_id
+				INNER JOIN	People	ON Countries.country_id		= People.country_id 
+				INNER JOIN  Guests	ON People.person_id			= Guests.person_id
 GROUP BY Countries.name
 order by Total_Visists desc
 
 
--- get total number of reservations in a month in a year
-SELECT year(check_in_date), month(check_in_date), count(month(check_in_date))
+-- get total number of reservations in a month in a year and sort them from the higher
+SELECT	year(check_in_date)			AS Year,
+		month(check_in_date)		As Month,
+		count(month(check_in_date))	As Number_of_visitors
+
 FROM Reservation
-group by year(check_in_date),month(check_in_date)
+	group by year(check_in_date),month(check_in_date)
+	Order by Number_of_visitors desc
 
--- avg age
 
--- number of visitors right know
+-- Get Average, Min, Max age of geusts in thier last visit
+SELECT  AVG(DATEDIFF(Year,People.date_of_birth,Guests.last_stay_date))As AVG_Age,
+		MAX(DATEDIFF(Year,People.date_of_birth,Guests.last_stay_date))As Max_Age,
+		Min(DATEDIFF(Year,People.date_of_birth,Guests.last_stay_date))As Min_Age
+FROM Guests INNER JOIN
+   People ON Guests.person_id = People.person_id
+   WHERE Guests.last_stay_date IS NOT NULL
 
--- most favorait room
 
--- 
+-- Number of visitors checked in right know
+SELECT count(check_in_date)
+FROM Reservation
+	where GetDate() between check_in_date AND check_out_date
+	And check_in_date IS NOT NULL
+
+
+-- Visited room Type
+SELECT Rooms.room_type_id, Count(Reservation.room_id) As Visiting_Times
+FROM Reservation INNER JOIN Rooms ON Reservation.room_id = Rooms.room_id
+   Group by Rooms.room_type_id
+   Order By Visiting_Times desc
+
+
+
+
+
+--contries insert data
+
+insert into Countries (name,country_code,iso_code)
+values
+('Afghanistan' , 'AFG' , 'AFG'),
+('Albania' , 'ALB' , 'ALB'),
+('Algeria' , 'DZA' , 'DZA'),
+('Andorra' , 'AND' , 'AND'),
+('Angola' , 'AGO' , 'AGO'),
+('Antarctica' , 'ATA' , 'ATA'),
+('Antigua and Barb.' , 'ATG' , 'ATG'),
+('Argentina' , 'ARG' , 'ARG'),
+('Armenia' , 'ARM' , 'ARM'),
+('Australia' , 'AUS' , 'AUS'),
+('Austria' , 'AUT' , 'AUT'),
+('Azerbaijan' , 'AZE' , 'AZE'),
+('Bahamas' , 'BHS' , 'BHS'),
+('Bahrain' , 'BHR' , 'BHR'),
+('Bangladesh' , 'BGD' , 'BGD'),
+('Barbados' , 'BRB' , 'BRB'),
+('Belarus' , 'BLR' , 'BLR'),
+('Belgium' , 'BEL' , 'BEL'),
+('Belize' , 'BLZ' , 'BLZ'),
+('Benin' , 'BEN' , 'BEN'),
+('Bhutan' , 'BTN' , 'BTN'),
+('Bolivia' , 'BOL' , 'BOL'),
+('Bosnia and Herz.' , 'BIH' , 'BIH'),
+('Botswana' , 'BWA' , 'BWA'),
+('Brazil' , 'BRA' , 'BRA'),
+('Brunei' , 'BRN' , 'BRN'),
+('Bulgaria' , 'BGR' , 'BGR'),
+('Burkina Faso' , 'BFA' , 'BFA'),
+('Burundi' , 'BDI' , 'BDI'),
+('Cabo Verde' , 'CPV' , 'CPV'),
+('Cambodia' , 'KHM' , 'KHM'),
+('Cameroon' , 'CMR' , 'CMR'),
+('Canada' , 'CAN' , 'CAN'),
+('Central African Rep.' , 'CAF' , 'CAF'),
+('Chad' , 'TCD' , 'TCD'),
+('Chile' , 'CHL' , 'CHL'),
+('China' , 'CHN' , 'CHN'),
+('Colombia' , 'COL' , 'COL'),
+('Comoros' , 'COM' , 'COM'),
+('Congo' , 'COG' , 'COG'),
+('Costa Rica' , 'CRI' , 'CRI'),
+('Côte d''Ivoire' , 'CIV' , 'CIV'),
+('Croatia' , 'HRV' , 'HRV'),
+('Cuba' , 'CUB' , 'CUB'),
+('Cyprus' , 'CYP' , 'CYP'),
+('Czechia' , 'CZE' , 'CZE'),
+('Dem. Rep. Congo' , 'COD' , 'COD'),
+('Denmark' , 'DNK' , 'DNK'),
+('Djibouti' , 'DJI' , 'DJI'),
+('Dominica' , 'DMA' , 'DMA'),
+('Dominican Rep.' , 'DOM' , 'DOM'),
+('Ecuador' , 'ECU' , 'ECU'),
+('Egypt' , 'EGY' , 'EGY'),
+('El Salvador' , 'SLV' , 'SLV'),
+('Eq. Guinea' , 'GNQ' , 'GNQ'),
+('Eritrea' , 'ERI' , 'ERI'),
+('Estonia' , 'EST' , 'EST'),
+('eSwatini' , 'SWZ' , 'SWZ'),
+('Ethiopia' , 'ETH' , 'ETH'),
+('Fiji' , 'FJI' , 'FJI'),
+('Finland' , 'FIN' , 'FIN'),
+('France' , 'FRA' , 'FRA'),
+('Gabon' , 'GAB' , 'GAB'),
+('Gambia' , 'GMB' , 'GMB'),
+('Georgia' , 'GEO' , 'GEO'),
+('Germany' , 'DEU' , 'DEU'),
+('Ghana' , 'GHA' , 'GHA'),
+('Greece' , 'GRC' , 'GRC'),
+('Grenada' , 'GRD' , 'GRD'),
+('Guatemala' , 'GTM' , 'GTM'),
+('Guinea' , 'GIN' , 'GIN'),
+('Guinea-Bissau' , 'GNB' , 'GNB'),
+('Guyana' , 'GUY' , 'GUY'),
+('Haiti' , 'HTI' , 'HTI'),
+('Honduras' , 'HND' , 'HND'),
+('Hungary' , 'HUN' , 'HUN'),
+('Iceland' , 'ISL' , 'ISL'),
+('India' , 'IND' , 'IND'),
+('Indonesia' , 'IDN' , 'IDN'),
+('Iran' , 'IRN' , 'IRN'),
+('Iraq' , 'IRQ' , 'IRQ'),
+('Ireland' , 'IRL' , 'IRL'),
+('Israel' , 'ISR' , 'ISR'),
+('Italy' , 'ITA' , 'ITA'),
+('Jamaica' , 'JAM' , 'JAM'),
+('Japan' , 'JPN' , 'JPN'),
+('Jordan' , 'JOR' , 'JOR'),
+('Kazakhstan' , 'KAZ' , 'KAZ'),
+('Kenya' , 'KEN' , 'KEN'),
+('Kiribati' , 'KIR' , 'KIR'),
+('Kosovo' , 'XKX' , 'XKX'),
+('Kuwait' , 'KWT' , 'KWT'),
+('Kyrgyzstan' , 'KGZ' , 'KGZ'),
+('Laos' , 'LAO' , 'LAO'),
+('Latvia' , 'LVA' , 'LVA'),
+('Lebanon' , 'LBN' , 'LBN'),
+('Lesotho' , 'LSO' , 'LSO'),
+('Liberia' , 'LBR' , 'LBR'),
+('Libya' , 'LBY' , 'LBY'),
+('Liechtenstein' , 'LIE' , 'LIE'),
+('Lithuania' , 'LTU' , 'LTU'),
+('Luxembourg' , 'LUX' , 'LUX'),
+('Madagascar' , 'MDG' , 'MDG'),
+('Malawi' , 'MWI' , 'MWI'),
+('Malaysia' , 'MYS' , 'MYS'),
+('Maldives' , 'MDV' , 'MDV'),
+('Mali' , 'MLI' , 'MLI'),
+('Malta' , 'MLT' , 'MLT'),
+('Marshall Is.' , 'MHL' , 'MHL'),
+('Mauritania' , 'MRT' , 'MRT'),
+('Mauritius' , 'MUS' , 'MUS'),
+('Mexico' , 'MEX' , 'MEX'),
+('Micronesia' , 'FSM' , 'FSM'),
+('Moldova' , 'MDA' , 'MDA'),
+('Monaco' , 'MCO' , 'MCO'),
+('Mongolia' , 'MNG' , 'MNG'),
+('Montenegro' , 'MNE' , 'MNE'),
+('Morocco' , 'MAR' , 'MAR'),
+('Mozambique' , 'MOZ' , 'MOZ'),
+('Myanmar' , 'MMR' , 'MMR'),
+('Namibia' , 'NAM' , 'NAM'),
+('Nauru' , 'NRU' , 'NRU'),
+('Nepal' , 'NPL' , 'NPL'),
+('Netherlands' , 'NLD' , 'NLD'),
+('New Zealand' , 'NZL' , 'NZL'),
+('Nicaragua' , 'NIC' , 'NIC'),
+('Niger' , 'NER' , 'NER'),
+('Nigeria' , 'NGA' , 'NGA'),
+('North Korea' , 'PRK' , 'PRK'),
+('North Macedonia' , 'MKD' , 'MKD'),
+('Norway' , 'NOR' , 'NOR'),
+('Oman' , 'OMN' , 'OMN'),
+('Pakistan' , 'PAK' , 'PAK'),
+('Palau' , 'PLW' , 'PLW'),
+('Panama' , 'PAN' , 'PAN'),
+('Papua New Guinea' , 'PNG' , 'PNG'),
+('Paraguay' , 'PRY' , 'PRY'),
+('Peru' , 'PER' , 'PER'),
+('Philippines' , 'PHL' , 'PHL'),
+('Poland' , 'POL' , 'POL'),
+('Portugal' , 'PRT' , 'PRT'),
+('Qatar' , 'QAT' , 'QAT'),
+('Romania' , 'ROU' , 'ROU'),
+('Russia' , 'RUS' , 'RUS'),
+('Rwanda' , 'RWA' , 'RWA'),
+('S. Sudan' , 'SSD' , 'SSD'),
+('Saint Lucia' , 'LCA' , 'LCA'),
+('Samoa' , 'WSM' , 'WSM'),
+('San Marino' , 'SMR' , 'SMR'),
+('São Tomé and Principe' , 'STP' , 'STP'),
+('Saudi Arabia' , 'SAU' , 'SAU'),
+('Senegal' , 'SEN' , 'SEN'),
+('Serbia' , 'SRB' , 'SRB'),
+('Seychelles' , 'SYC' , 'SYC'),
+('Sierra Leone' , 'SLE' , 'SLE'),
+('Singapore' , 'SGP' , 'SGP'),
+('Slovakia' , 'SVK' , 'SVK'),
+('Slovenia' , 'SVN' , 'SVN'),
+('Solomon Is.' , 'SLB' , 'SLB'),
+('Somalia' , 'SOM' , 'SOM'),
+('South Africa' , 'ZAF' , 'ZAF'),
+('South Korea' , 'KOR' , 'KOR'),
+('Spain' , 'ESP' , 'ESP'),
+('Sri Lanka' , 'LKA' , 'LKA'),
+('St. Kitts and Nevis' , 'KNA' , 'KNA'),
+('St. Vin. and Gren.' , 'VCT' , 'VCT'),
+('Sudan' , 'SDN' , 'SDN'),
+('Suriname' , 'SUR' , 'SUR'),
+('Sweden' , 'SWE' , 'SWE'),
+('Switzerland' , 'CHE' , 'CHE'),
+('Syria' , 'SYR' , 'SYR'),
+('Taiwan' , 'TWN' , 'TWN'),
+('Tajikistan' , 'TJK' , 'TJK'),
+('Tanzania' , 'TZA' , 'TZA'),
+('Thailand' , 'THA' , 'THA'),
+('Timor-Leste' , 'TLS' , 'TLS'),
+('Togo' , 'TGO' , 'TGO'),
+('Tonga' , 'TON' , 'TON'),
+('Trinidad and Tobago' , 'TTO' , 'TTO'),
+('Tunisia' , 'TUN' , 'TUN'),
+('Turkey' , 'TUR' , 'TUR'),
+('Turkmenistan' , 'TKM' , 'TKM'),
+('Tuvalu' , 'TUV' , 'TUV'),
+('Uganda' , 'UGA' , 'UGA'),
+('Ukraine' , 'UKR' , 'UKR'),
+('United Arab Emirates' , 'ARE' , 'ARE'),
+('United Kingdom' , 'GBR' , 'GBR'),
+('United States of America' , 'USA' , 'USA'),
+('Uruguay' , 'URY' , 'URY'),
+('Uzbekistan' , 'UZB' , 'UZB'),
+('Vanuatu' , 'VUT' , 'VUT'),
+('Vatican' , 'VAT' , 'VAT'),
+('Venezuela' , 'VEN' , 'VEN'),
+('Vietnam' , 'VNM' , 'VNM'),
+('W. Sahara' , 'ESH' , 'ESH'),
+('Yemen' , 'YEM' , 'YEM'),
+('Zambia' , 'ZMB' , 'ZMB'),
+('Zimbabwe' , 'ZWE' , 'ZWE');
+
+
+-- insert Currencies data
+Insert Into Currencies (currency_name, currency_code)
+values
+('"A" Account (convertible Peseta Account)' , 'ESB'),
+('ADB Unit of Account' , 'XUA'),
+('Afghani' , 'AFA'),
+('Afghani' , 'AFN'),
+('Algerian Dinar' , 'DZD'),
+('Andorran Peseta' , 'ADP'),
+('Argentine Peso' , 'ARS'),
+('Armenian Dram' , 'AMD'),
+('Aruban Florin' , 'AWG'),
+('Austral' , 'ARA'),
+('Australian Dollar' , 'AUD'),
+('Azerbaijan Manat' , 'AYM'),
+('Azerbaijan Manat' , 'AZN'),
+('Azerbaijanian Manat' , 'AZM'),
+('Bahamian Dollar' , 'BSD'),
+('Bahraini Dinar' , 'BHD'),
+('Baht' , 'THB'),
+('Balboa' , 'PAB'),
+('Barbados Dollar' , 'BBD'),
+('Belarusian Ruble' , 'BYB'),
+('Belarusian Ruble' , 'BYN'),
+('Belarusian Ruble' , 'BYR'),
+('Belgian Franc' , 'BEF'),
+('Belize Dollar' , 'BZD'),
+('Bermudian Dollar' , 'BMD'),
+('BolÃ­var' , 'VEF'),
+('BolÃ­var Soberano' , 'VED'),
+('BolÃ­var Soberano' , 'VES'),
+('Bolivar' , 'VEB'),
+('Bolivar' , 'VEF'),
+('Bolivar Fuerte' , 'VEF'),
+('Boliviano' , 'BOB'),
+('Bond Markets Unit European Composite Unit (EURCO)' , 'XBA'),
+('Bond Markets Unit European Monetary Unit (E.M.U.-6)' , 'XBB'),
+('Bond Markets Unit European Unit of Account 17 (E.U.A.-17)' , 'XBD'),
+('Bond Markets Unit European Unit of Account 9 (E.U.A.-9)' , 'XBC'),
+('Brazilian Real' , 'BRL'),
+('Brunei Dollar' , 'BND'),
+('Bulgarian Lev' , 'BGN'),
+('Burundi Franc' , 'BIF'),
+('Cabo Verde Escudo' , 'CVE'),
+('Canadian Dollar' , 'CAD'),
+('Cayman Islands Dollar' , 'KYD'),
+('Cedi' , 'GHC'),
+('CFA Franc BCEAO' , 'XOF'),
+('CFA Franc BEAC' , 'XAF'),
+('CFP Franc' , 'XPF'),
+('Chilean Peso' , 'CLP'),
+('Colombian Peso' , 'COP'),
+('Comorian Franc' , 'KMF'),
+('Congolese Franc' , 'CDF'),
+('Convertible Franc' , 'BEC'),
+('Convertible Mark' , 'BAM'),
+('Cordoba' , 'NIC'),
+('Cordoba Oro' , 'NIO'),
+('Costa Rican Colon' , 'CRC'),
+('Croatian Dinar' , 'HRD'),
+('Croatian Kuna' , 'HRK'),
+('Cruzado' , 'BRC'),
+('Cruzeiro' , 'BRB'),
+('Cruzeiro' , 'BRE'),
+('Cruzeiro Real' , 'BRR'),
+('Cuban Peso' , 'CUP'),
+('Cyprus Pound' , 'CYP'),
+('Czech Koruna' , 'CZK'),
+('Dalasi' , 'GMD'),
+('Danish Krone' , 'DKK'),
+('Denar' , 'MKD'),
+('Deutsche Mark' , 'DEM'),
+('Dinar' , 'BAD'),
+('Djibouti Franc' , 'DJF'),
+('Dobra' , 'STD'),
+('Dobra' , 'STN'),
+('Dominican Peso' , 'DOP'),
+('Dong' , 'VND'),
+('Drachma' , 'GRD'),
+('East Caribbean Dollar' , 'XCD'),
+('Egyptian Pound' , 'EGP'),
+('Ekwele' , 'GQE'),
+('El Salvador Colon' , 'SVC'),
+('Ethiopian Birr' , 'ETB'),
+('Euro' , 'EUR'),
+('European Currency Unit (E.C.U)' , 'XEU'),
+('Falkland Islands Pound' , 'FKP'),
+('Fiji Dollar' , 'FJD'),
+('Financial Franc' , 'BEL'),
+('Financial Rand' , 'ZAL'),
+('Forint' , 'HUF'),
+('French Franc' , 'FRF'),
+('Georgian Coupon' , 'GEK'),
+('Ghana Cedi' , 'GHP'),
+('Ghana Cedi' , 'GHS'),
+('Gibraltar Pound' , 'GIP'),
+('Gold' , 'XAU'),
+('Gold-Franc' , 'XFO'),
+('Gourde' , 'HTG'),
+('Guarani' , 'PYG'),
+('Guinea Escudo' , 'GWE'),
+('Guinea-Bissau Peso' , 'GWP'),
+('Guinean Franc' , 'GNF'),
+('Guyana Dollar' , 'GYD'),
+('Hong Kong Dollar' , 'HKD'),
+('Hryvnia' , 'UAH'),
+('Iceland Krona' , 'ISK'),
+('Indian Rupee' , 'INR'),
+('Inti' , 'PEI'),
+('Iranian Rial' , 'IRR'),
+('Iraqi Dinar' , 'IQD'),
+('Irish Pound' , 'IEP'),
+('Italian Lira' , 'ITL'),
+('Jamaican Dollar' , 'JMD'),
+('Jordanian Dinar' , 'JOD'),
+('Karbovanet' , 'UAK'),
+('Kenyan Shilling' , 'KES'),
+('Kina' , 'PGK'),
+('Koruna' , 'CSK'),
+('Krona A/53' , 'CSJ'),
+('Kroon' , 'EEK'),
+('Kuna' , 'HRK'),
+('Kuwaiti Dinar' , 'KWD'),
+('Kwacha' , 'MWK'),
+('Kwanza' , 'AOA'),
+('Kwanza' , 'AOK'),
+('Kwanza Reajustado' , 'AOR'),
+('Kyat' , 'BUK'),
+('Kyat' , 'MMK'),
+('Lao Kip' , 'LAK'),
+('Lari' , 'GEL'),
+('Latvian Lats' , 'LVL'),
+('Latvian Ruble' , 'LVR'),
+('Lebanese Pound' , 'LBP'),
+('Lek' , 'ALL'),
+('Lempira' , 'HNL'),
+('Leone' , 'SLE'),
+('Leone' , 'SLL'),
+('Leu A/52' , 'ROK'),
+('Lev' , 'BGL'),
+('Lev A/52' , 'BGJ'),
+('Lev A/62' , 'BGK'),
+('Liberian Dollar' , 'LRD'),
+('Libyan Dinar' , 'LYD'),
+('Lilangeni' , 'SZL'),
+('Lithuanian Litas' , 'LTL'),
+('Loti' , 'LSL'),
+('Loti' , 'LSM'),
+('Luxembourg Convertible Franc' , 'LUC'),
+('Luxembourg Financial Franc' , 'LUL'),
+('Luxembourg Franc' , 'LUF'),
+('Malagasy Ariary' , 'MGA'),
+('Malagasy Franc' , 'MGF'),
+('Malawi Kwacha' , 'MWK'),
+('Malaysian Ringgit' , 'MYR'),
+('Maldive Rupee' , 'MVQ'),
+('Mali Franc' , 'MLF'),
+('Maltese Lira' , 'MTL'),
+('Maltese Pound' , 'MTP'),
+('Mark der DDR' , 'DDM'),
+('Markka' , 'FIM'),
+('Mauritius Rupee' , 'MUR'),
+('Mexican Peso' , 'MXN'),
+('Mexican Peso' , 'MXP'),
+('Mexican Unidad de Inversion (UDI)' , 'MXV'),
+('Moldovan Leu' , 'MDL'),
+('Moroccan Dirham' , 'MAD'),
+('Mozambique Escudo' , 'MZE'),
+('Mozambique Metical' , 'MZM'),
+('Mozambique Metical' , 'MZN'),
+('Mvdol' , 'BOV'),
+('Naira' , 'NGN'),
+('Nakfa' , 'ERN'),
+('Namibia Dollar' , 'NAD'),
+('Nepalese Rupee' , 'NPR'),
+('Netherlands Antillean Guilder' , 'ANG'),
+('Netherlands Guilder' , 'NLG'),
+('New Cruzado' , 'BRN'),
+('New Dinar' , 'YUM'),
+('New Israeli Sheqel' , 'ILS'),
+('New Kwanza' , 'AON'),
+('New Romanian Leu' , 'RON'),
+('New Taiwan Dollar' , 'TWD'),
+('New Turkish Lira' , 'TRY'),
+('New Yugoslavian Dinar' , 'YUD'),
+('New Zaire' , 'ZRN'),
+('New Zealand Dollar' , 'NZD'),
+('Ngultrum' , 'BTN'),
+('North Korean Won' , 'KPW'),
+('Norwegian Krone' , 'NOK'),
+('Nuevo Sol' , 'PEN'),
+('Old Dong' , 'VNC'),
+('Old Krona' , 'ISJ'),
+('Old Lek' , 'ALK'),
+('Old Leu' , 'ROL'),
+('Old Shekel' , 'ILR'),
+('Old Shilling' , 'UGW'),
+('Old Turkish Lira' , 'TRL'),
+('Old Uruguay Peso' , 'UYN'),
+('Ouguiya' , 'MRO'),
+('Ouguiya' , 'MRU'),
+('Paâanga' , 'TOP'),
+('Pakistan Rupee' , 'PKR'),
+('Palladium' , 'XPD'),
+('Pataca' , 'MOP'),
+('Pathet Lao Kip' , 'LAJ'),
+('Peso' , 'ARY'),
+('Peso Argentino' , 'ARP'),
+('Peso boliviano' , 'BOP'),
+('Peso Convertible' , 'CUC'),
+('Peso Uruguayo' , 'UYU'),
+('Philippine Peso' , 'PHP'),
+('Platinum' , 'XPT'),
+('Portuguese Escudo' , 'PTE'),
+('Pound' , 'ILP'),
+('Pound Sterling' , 'GBP'),
+('Pula' , 'BWP'),
+('Qatari Rial' , 'QAR'),
+('Quetzal' , 'GTQ'),
+('Rand' , 'ZAR'),
+('Rhodesian Dollar' , 'RHD'),
+('Rhodesian Dollar' , 'ZWC'),
+('Rial Omani' , 'OMR'),
+('Riel' , 'KHR'),
+('RINET Funds Code' , 'XRE'),
+('Romanian Leu' , 'RON'),
+('Rouble' , 'SUR'),
+('Rufiyaa' , 'MVR'),
+('Rupiah' , 'IDR'),
+('Russian Ruble' , 'RUB'),
+('Russian Ruble' , 'RUR'),
+('Rwanda Franc' , 'RWF'),
+('Saint Helena Pound' , 'SHP'),
+('Saudi Riyal' , 'SAR'),
+('Schilling' , 'ATS'),
+('SDR (Special Drawing Right)' , 'XDR'),
+('Serbian Dinar' , 'CSD'),
+('Serbian Dinar' , 'RSD'),
+('Seychelles Rupee' , 'SCR'),
+('Silver' , 'XAG'),
+('Singapore Dollar' , 'SGD'),
+('Slovak Koruna' , 'SKK'),
+('Sol' , 'PEH'),
+('Sol' , 'PEN'),
+('Sol' , 'PES'),
+('Solomon Islands Dollar' , 'SBD'),
+('Som' , 'KGS'),
+('Somali Shilling' , 'SOS'),
+('Somoni' , 'TJS'),
+('South Sudanese Pound' , 'SSP'),
+('Spanish Peseta' , 'ESA'),
+('Spanish Peseta' , 'ESP'),
+('Sri Lanka Rupee' , 'LKR'),
+('Sucre' , 'ECS'),
+('Sucre' , 'XSU'),
+('Sudanese Dinar' , 'SDD'),
+('Sudanese Pound' , 'SDG'),
+('Sudanese Pound' , 'SDP'),
+('Surinam Dollar' , 'SRD'),
+('Surinam Guilder' , 'SRG'),
+('Swedish Krona' , 'SEK'),
+('Swiss Franc' , 'CHF'),
+('Syli' , 'GNE'),
+('Syli' , 'GNS'),
+('Syrian Pound' , 'SYP'),
+('Tajik Ruble' , 'TJR'),
+('Taka' , 'BDT'),
+('Tala' , 'WST'),
+('Talonas' , 'LTT'),
+('Tanzanian Shilling' , 'TZS'),
+('Tenge' , 'KZT'),
+('The codes assigned for transactions where no currency is involved' , 'XXX'),
+('Timor Escudo' , 'TPE'),
+('Tolar' , 'SIT'),
+('Trinidad and Tobago Dollar' , 'TTD'),
+('Tugrik' , 'MNT'),
+('Tunisian Dinar' , 'TND'),
+('Turkish Lira' , 'TRY'),
+('Turkmenistan Manat' , 'TMM'),
+('Turkmenistan New Manat' , 'TMT'),
+('UAE Dirham' , 'AED'),
+('Uganda Shilling' , 'UGS'),
+('Uganda Shilling' , 'UGX'),
+('UIC-Franc' , 'XFU'),
+('Unidad de Fomento' , 'CLF'),
+('Unidad de Valor Constante (UVC)' , 'ECV'),
+('Unidad de Valor Real' , 'COU'),
+('Unidad Previsional' , 'UYW'),
+('Uruguay Peso en Unidades Indexadas (UI)' , 'UYI'),
+('Uruguayan Peso' , 'UYP'),
+('US Dollar' , 'USD'),
+('US Dollar (Next day)' , 'USN'),
+('US Dollar (Same day)' , 'USS'),
+('Uzbekistan Sum' , 'UZS'),
+('Vatu' , 'VUV'),
+('WIR Euro' , 'CHE'),
+('WIR Franc' , 'CHW'),
+('WIR Franc (for electronic)' , 'CHC'),
+('Won' , 'KRW'),
+('Yemeni Dinar' , 'YDD'),
+('Yemeni Rial' , 'YER'),
+('Yen' , 'JPY'),
+('Yuan Renminbi' , 'CNY'),
+('Yugoslavian Dinar' , 'YUN'),
+('Zaire' , 'ZRZ'),
+('Zambian Kwacha' , 'ZMK'),
+('Zambian Kwacha' , 'ZMW'),
+('Zimbabwe Dollar' , 'ZWD'),
+('Zimbabwe Dollar' , 'ZWL'),
+('Zimbabwe Dollar' , 'ZWR'),
+('Zimbabwe Dollar (new)' , 'ZWN'),
+('Zimbabwe Dollar (old)' , 'ZWD'),
+('Zimbabwe Gold' , 'ZWG'),
+('Zloty' , 'PLN'),
+('Zloty' , 'PLZ')
