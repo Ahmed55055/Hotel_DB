@@ -359,6 +359,14 @@ The `Guests` table stores information about guests staying at the hotel.
 | is_vip                    | BIT            | Indicates if the guest is a VIP (Default: 0) |
 | user_id                   | INT            | Identifier for the associated user (Cannot be NULL) |
 
+### Denormalization Explained 
+### Why
+Based on my requirements, the information regarding the `last_stay_date` is essential for the receptionist, while `total_stays` is beneficial for both the receptionist and the guest, particularly when guests access their data online.
+
+### How will we address this?
+Once the reservation is finalized and the guest is checked into their room, we can update the `last_stay_date` to the current date and increment the `total_stays` by one. Additionally, a query will be scheduled to run weekly, or at regular intervals, to verify that all guest records are consistent by counting each guest's stays and making updates if discrepancies are identified.
+
+
 ### Constraints
 - `guest_id` is the primary key.
 - `person_id` is a foreign key referencing `People(person_id)`.
