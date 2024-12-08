@@ -1,16 +1,26 @@
+/*
+================================================================================================
+================================================================================================
+	Index									From Line		To
+	--------------------------------------------------------------
+	Tables With No Foriegn keys					1		:	156
+	Tables With Foriegn keys					165		:	511
+	Normal Insert statments						536		:	755
+	Select Queries								736		:	858
+	Insertion query extracted from dataset		864		:	1380
 
---================================================================================================
---================================================================================================
---	Creating tables code is not heavily commented because it's self-descriptive
---	To know more about why everything is made like this and what the purpose of all the details
---	please visit this GitHub repo to read the documentation: https://github.com/Ahmed55055/Hotel_DB/blob/main/Documentation.md
+	---------------------------------------------------------------
 
---	the creating script of the database is saperated into two parts
---	First is helper tables which are the tables where the info will be fixed 
---	or won't need to be updated for a long time
---	the second part is the main tables that have references and indexes
---================================================================================================
---================================================================================================
+	NOTE:
+	There is a database design mistakes here and there but didn't realise it untill it's too late
+
+	And To know more about why everything is made like this and what the purpose of all the details
+	please visit this GitHub repo to read the documentation: https://github.com/Ahmed55055/Hotel_DB/blob/main/Documentation.md
+
+
+================================================================================================
+================================================================================================
+*/
 
 -- Creating Database
 
@@ -20,7 +30,8 @@
 --==================================================================================================
 ---------------------------[		Helper Tables		]-----------------------------------
 --==================================================================================================
--- Create Countries Table
+
+--Create Countries Table
 CREATE TABLE Countries (
     country_id		INT IDENTITY(1,1),
     name			NVARCHAR(255)	NOT NULL,
@@ -140,7 +151,7 @@ CREATE TABLE Card_Types (
 -- Create Currencies Table
 CREATE TABLE Currencies (
     currency_id		INT IDENTITY(1,1),
-    currency_name	NVARCHAR(255) NOT NULL,
+    currency_name	NVARCHAR(255) NOT NULL ,
     currency_code	NVARCHAR(10) NOT NULL,
 	
 	CONSTRAINT PK_Currencies	Primary Key (currency_id),
@@ -148,7 +159,7 @@ CREATE TABLE Currencies (
 );
 
 --==================================================================================================
----------------------------[		Create People Table			]-----------------------------------
+---------------------------[		Create Main Table			]-----------------------------------
 --==================================================================================================
 
 
@@ -216,6 +227,9 @@ CREATE TABLE Users (
 CREATE NONCLUSTERED INDEX idx_username
 ON Users (username);
 
+CREATE NONCLUSTERED INDEX idx_person_id
+ON Users (person_id);
+
 --------------------------------------------------------------------------------------------------
 
 -- Create Room Types Table
@@ -281,8 +295,8 @@ ON People (person_id);
 -- Create Loyalty Benefits Table
 
 	-- float Precision
-	-- 1-24		7  digits	4 bytes storage size
-	-- 25-53	15 digits	8 bytes storage size
+	-- 1-24			7  digits		4 bytes storage size
+	-- 25-53		15 digits		8 bytes storage size
 
 CREATE TABLE Loyalty_Benefits (
     benefit_id				INT IDENTITY(1,1),
@@ -307,7 +321,7 @@ CREATE TABLE Loyalty_Benefits (
 CREATE TABLE Rooms (
     room_id			INT IDENTITY(1,1),
     room_type_id	INT			NOT NULL,
-    capacity		SMALLINT	NOT NULL,
+    capacity		SMALLINT	NOT NULL, -- unnesasairy denormalization can cause errors and info conflict
     floor			SMALLINT	NOT NULL,
     room_status_id	INT			NOT NULL,
 
@@ -338,9 +352,9 @@ CREATE TABLE Staff (
     employee_type_id		INT				NOT NULL,
     emergency_contact_phone NVARCHAR(15)	NULL,
     bank_account_number		NVARCHAR(20)	NULL,
-    performance_rating		FLOAT(24)		DEFAULT 5,
-    employment_status		INT				NOT NULL,
-    hire_date				DATETIME		NOT NULL,
+    performance_rating		FLOAT(24)		DEFAULT 5,	-- 0 To 5
+    employment_status		INT				NOT NULL,	-- forgot to make status table for employees
+    hire_date				DATETIME		NOT NULL,	-- should'v be Date
     departure_date			DATE			NULL,
     user_id					INT				NOT NULL,
 
@@ -348,8 +362,9 @@ CREATE TABLE Staff (
 	CONSTRAINT PK_Staff				Primary Key (staff_id),
 
 -- CHECK
-	CONSTRAINT CK_salary			 CHECK (salary >= 0), -- Salary must be non-negative
-	CONSTRAINT CK_performance_rating CHECK (performance_rating >= 0 AND performance_rating <= 5), -- Rating between 0 and 5
+	CONSTRAINT CK_salary				CHECK (salary >= 0), -- Salary must be non-negative
+	CONSTRAINT CK_performance_rating	CHECK (performance_rating >= 0 AND performance_rating <= 5), -- Rating between 0 and 5
+	CONSTRAINT UC_Staff_person_id		Unique (person_id),
 
 -- FOREIGN KEY
     CONSTRAINT FK_Staff_Person		FOREIGN KEY (person_id)		REFERENCES People(person_id),
@@ -476,7 +491,7 @@ CREATE TABLE Payment (
     payment_method_id	INT				NOT NULL,
     payment_status_id	INT				NOT NULL,
     card_type_id		INT				NOT NULL,
-    payment_date		DATETIME		NOT NULL,
+    payment_date		DATETIME		NOT NULL Default GetDate(),
     currency_id			INT				NOT NULL,
     note				NVARCHAR(MAX)	NULL,
 
@@ -498,7 +513,7 @@ CREATE TABLE Payment (
 Alter Table Reservation
 add CONSTRAINT FK_Reservation_Payment	FOREIGN KEY (payment_id)	REFERENCES Payment(payment_id)
 
--- End of Database Creation Script
+
 
 
 
@@ -514,8 +529,7 @@ add CONSTRAINT FK_Reservation_Payment	FOREIGN KEY (payment_id)	REFERENCES Paymen
 
 -- And this is how i got the insert statment on the Github
 -- select insert_statment = '(''' + name + ''' , '''+ iso_code + ''' , '''+iso_code+'''),' from Countries
- select insert_statment = '(''' + currency_name + ''' , '''+ currency_code +'''),' from Currencies
-
+ 
 
 -------------------------------------------------------------------------------------------------
 
@@ -613,7 +627,7 @@ INSERT INTO Services (service_name, description, price_usd) VALUES
 ('Concierge Services', 'Personalized assistance for reservations and recommendations.', 10.00),
 ('Gym Access', 'Access to the hotel gym and fitness facilities.', 5.00);
 
--- the code is self descriptive i don't need to continue
+-- insert diffrant rooms status
 INSERT INTO room_status (status, description) VALUES 
 ('Available', 'Room is available for booking.'),
 ('Occupied', 'Room is currently occupied by a guest.'),
@@ -622,6 +636,7 @@ INSERT INTO room_status (status, description) VALUES
 ('Dirty', 'Room needs cleaning after guest checkout.'),
 ('Reserved', 'Room has been reserved but not yet checked in.');
 
+-- insert payment methods we accept
 INSERT INTO Payment_Methods (method_name, description) VALUES 
 ('Credit Card', 'Payment made using a credit card.'),
 ('Debit Card', 'Payment made using a debit card.'),
@@ -629,6 +644,7 @@ INSERT INTO Payment_Methods (method_name, description) VALUES
 ('Online Payment', 'Payment made through online banking or payment gateways.'),
 ('Mobile Payment', 'Payment made using mobile payment applications (e.g., Apple Pay, Google Pay).');
 
+-- insert payment status
 INSERT INTO Payment_Status (status_name, description) VALUES 
 ('Pending', 'Payment is pending and has not been completed.'),
 ('Completed', 'Payment has been successfully completed.'),
@@ -636,6 +652,7 @@ INSERT INTO Payment_Status (status_name, description) VALUES
 ('Refunded', 'Payment has been refunded to the guest.'),
 ('Cancelled', 'Payment has been cancelled by the guest or the hotel.');
 
+-- insert rooms types
 INSERT INTO Room_Types (bed_type_id, capacity, wifi, internet_speed_MB, tv, work_desk, balcony, refrigerator, coffee_maker, safe, room_orientation, base_price_rate) VALUES 
 (1, 2, 1, 100.0, 1, 1, 1, 1, 1, 1, 'Ocean View', 150.00),
 (2, 4, 1, 50.0, 1, 1, 0, 1, 1, 1, 'City View', 250.00),
@@ -643,7 +660,7 @@ INSERT INTO Room_Types (bed_type_id, capacity, wifi, internet_speed_MB, tv, work
 (1, 3, 1, 75.0, 1, 1, 1, 0, 1, 0, 'Mountain View', 200.00),
 (2, 2, 0, NULL, 1, 0, 0, 1, 0, 1, 'Pool View', 180.00);
 
-
+-- insert benefits of loyalty tiers
 INSERT INTO Loyalty_Benefits (loyalty_tier_id, service_id, discount_percentage, points) VALUES 
 (1, 1, 5.0, 100),  -- Bronze tier		benefit for Room Service
 (2, 2, 10.0, 200), -- Silver tier		benefit for Spa Treatment
@@ -653,7 +670,7 @@ INSERT INTO Loyalty_Benefits (loyalty_tier_id, service_id, discount_percentage, 
 (5, 2, 25.0, 500), -- Diamond tier		benefit for Spa Services
 (5, 5, 25.0, 500); -- Diamond tier		benefit for Concierge Services
 
-
+-- insert rooms (room status insertion is up)
 INSERT INTO Rooms (room_type_id, capacity, floor, room_status_id) VALUES 
 (1, 2, 1, 1),  -- Room Type ID 1,	Capacity 2,		Floor 1,	Status ID 1 (Available)
 (2, 4, 2, 2),  -- Room Type ID 2,	Capacity 4,		Floor 2,	Status ID 2 (Occupied)
@@ -661,7 +678,7 @@ INSERT INTO Rooms (room_type_id, capacity, floor, room_status_id) VALUES
 (1, 3, 3, 4),  -- Room Type ID 1,	Capacity 3,		Floor 3,	Status ID 4 (Clean)
 (2, 2, 2, 5);  -- Room Type ID 2,	Capacity 2,		Floor 2,	Status ID 5 (Dirty)
 
-
+-- insert people
 INSERT INTO People (first_name, second_name, third_name, last_name, email, date_of_birth, id_proof_type_id, id_proof_type_number, country_id) VALUES 
 ('Ahmed', 'Ibrahim'	, NULL	, 'Sayed', 'ahmed.ibrahim@gmail.com', '2005-06-15', 1, 'A123456789', 1),  -- Ahmed Ibrahim Sayed
 ('Ahmed', 'Bassem'	,NULL	, 'Ramadan', 'ahmed.bassem.ramadan@gmail.com', '2005-04-25', 2, 'B987654321', 2),  -- Ahmed Bassem Ramadan
@@ -674,6 +691,7 @@ INSERT INTO People (first_name, second_name, third_name, last_name, email, date_
 ('Esraa', 'Eid'		,NULL	, 'Abdel-Sattar', 'esraa.eid.abdel.sattar@gmail.com', '2005-03-15', 1, 'I987987987', 1),  -- Esraa Eid Abdel-Sattar
 ('Esraa', 'Imad'	,NULL	, 'Abdel-Sattar', 'esraa.imad.abdel.sattar@gmail.com', '2005-12-30', 2, 'J456456456', 2);  -- Esraa Imad Abdel-Sattar
 
+-- insert users
 INSERT INTO Users (username, password_hash, is_active, last_login, account_locked, account_locked_until, person_id, user_type_id) VALUES 
 ('ahmedibrahimsayed', 'hashed_password_1', 1, NULL, 0, NULL, 1, 1),  
 ('ahmedbassemramadan', 'hashed_password_2', 1, NULL, 0, NULL, 2, 2),  
@@ -686,7 +704,7 @@ INSERT INTO Users (username, password_hash, is_active, last_login, account_locke
 ('esraaeidabdesattar', 'hashed_password_9', 1, NULL, 0, NULL, 9 , 1), 
 ('esraaimadabdesattar', 'hashed_password_10', 1, NULL, 0, NULL, 10, 2);
 
-
+-- insert guests
 INSERT INTO Guests (person_id, loyalty_tier_id, loyalty_points, total_stays, preferred_room_type_id, last_stay_date, communication_preference_id, is_vip, user_id) VALUES 
 (1, 1, 0, 0, 1, NULL, 1, 0, 1),  -- Guest for Ahmed Ibrahim Sayed
 (2, 2, 0, 0, 2, NULL, 2, 0, 2),  -- Guest for Ahmed Bassem Ramadan
@@ -699,6 +717,7 @@ INSERT INTO Guests (person_id, loyalty_tier_id, loyalty_points, total_stays, pre
 (9, 1, 0, 0, 1, NULL, 1, 9, null),  -- Guest for Esraa Eid Abdel-Sattar
 (10, 2, 0, 0, 2, NULL, 2, 10, null);  -- Guest for Esraa Imad Abdel-Sattar
 
+-- insert employees positions
 INSERT INTO Position (title, department_id, salary_min, salary_max, qualifications, responsibilities) VALUES 
 ('Front Desk Manager', 1, 3000.00, 5000.00, 'Bachelor''s degree in Hospitality Management', 'Oversee front desk operations, manage staff, and ensure guest satisfaction.'),
 ('Housekeeping Supervisor', 2, 2000.00, 3500.00, 'High school diploma or equivalent', 'Supervise housekeeping staff and ensure cleanliness of guest rooms.'),
@@ -706,8 +725,7 @@ INSERT INTO Position (title, department_id, salary_min, salary_max, qualificatio
 ('Chef', 4, 3500.00, 6000.00, 'Culinary degree or equivalent experience', 'Prepare meals, manage kitchen staff, and ensure food quality.'),
 ('Maintenance Technician', 5, 2500.00, 4000.00, 'Technical certification or equivalent experience', 'Perform maintenance and repairs on hotel facilities.');
 
-
-
+-- insert phone numbers
 INSERT INTO Phone (phone_number, person_id, is_active) VALUES 
 ('123-456-7890', 1, 1),
 ('0987654321', 2, 1),  
@@ -715,15 +733,15 @@ INSERT INTO Phone (phone_number, person_id, is_active) VALUES
 ('444444-4444', 4, 1), 
 ('333-333-3333', 5, 1);
 
-
+-- insert reservation
 INSERT INTO Reservation (guest_id, room_id, check_in_date, check_out_date, actual_check_out_date, payment_id) VALUES 
-(1, 1, '2024-12-01 15:00:00', '2024-12-12 11:00:00', NULL, NULL),  -- Reservation for guest 1 in room 101
-(2, 2, '2024-12-02 15:00:00', '2024-12-15 11:00:00', NULL, NULL),  -- Reservation for guest 2 in room 102
-(3, 3, '2024-12-03 15:00:00', '2024-12-12 11:00:00', NULL, NULL),  -- Reservation for guest 3 in room 103
-(4, 4, '2024-12-04 15:00:00', '2024-12-30 11:00:00', NULL, NULL),  -- Reservation for guest 4 in room 104
-(5, 5, '2024-12-05 15:00:00', '2024-12-12 11:00:00', NULL, NULL);  -- Reservation for guest 5 in room 105
+(1, 1, '2024-12-01 15:00:00', '2024-12-12 11:00:00', NULL, NULL),  -- Reservation for guest 1 in room 1
+(2, 2, '2024-12-02 15:00:00', '2024-12-15 11:00:00', NULL, NULL),  -- Reservation for guest 2 in room 2
+(3, 3, '2024-12-03 15:00:00', '2024-12-12 11:00:00', NULL, NULL),  -- Reservation for guest 3 in room 3
+(4, 4, '2024-12-04 15:00:00', '2024-12-30 11:00:00', NULL, NULL),  -- Reservation for guest 4 in room 4
+(5, 5, '2024-12-05 15:00:00', '2024-12-12 11:00:00', NULL, NULL);  -- Reservation for guest 5 in room 5
 
-
+-- insert payments
 INSERT INTO Payment (reservation_id, guest_id, amount, payment_method_id, payment_status_id, card_type_id, payment_date, currency_id, note) VALUES 
 (1, 1, 500.00, 1, 1, 1, '2023-10-01 14:00:00', 1, 'Paid in full'),  -- Payment for reservation 1
 (2, 2, 600.00, 2, 1, 2, '2023-10-02 14:30:00', 1, 'Paid in full'),  -- Payment for reservation 2
@@ -731,6 +749,7 @@ INSERT INTO Payment (reservation_id, guest_id, amount, payment_method_id, paymen
 (4, 4, 800.00, 3, 1,  2, '2023-10-04 15:30:00', 1, 'Paid in full'),  -- Payment for reservation 4
 (5, 5, 900.00, 2, 1, 2, '2023-10-05 16:00:00', 1, 'Paid in full');  -- Payment for reservation 5
 
+-- insert employees 
 INSERT INTO Staff (person_id, department_id, position_id, manager_id, salary, employee_type_id, emergency_contact_phone, bank_account_number, performance_rating, employment_status, hire_date, departure_date, user_id) VALUES 
 (1, 1, 1, NULL, 3000.00, 1, '123-456-7890', '1234567890123456', 4.5, 1, '2023-01-15', NULL, 1), 
 (2, 1, 2, 1, 2500.00, 1, '098-765-4321', '2345678901234567', 4.0, 1, '2023-02-01', NULL, 2), 
@@ -743,13 +762,21 @@ INSERT INTO Staff (person_id, department_id, position_id, manager_id, salary, em
 --SELECT QUERIES
 ----------------------------------------
 
--- one of the reasons making an index for email to when the user try to reach thier email
--- by login or some way else it uses index seek insead of full table scan
-SELECT People.first_name,People.last_name, Users.username, People.email
-FROM People JOIN
-   Users ON People.person_id = Users.person_id
-   where People.email = 'john.gonzalez@CAE942E0-60B4-4B53-B91D-ECEFB5630685.com';
 
+-- get person information by email
+
+-- this query is tested on a database with the people table is over 9,000,000 records and
+-- users table is 155,000 record
+-- the improvment of making index for Users.person_id is 
+-- reducing excution time from 13,000 microsocond to 81 microsocond 16,000% improvment
+-- this code is maybe a simulation of login atempt or searching for a person by email
+SELECT People.first_name,People.last_name,Users.username, People.email
+FROM Users inner JOIN
+   People ON Users.person_id = People.person_id
+   where People.email = 'olivia.wilson@42E264EC-6991-438E-90BB-E19FA7B621C5.com';
+
+
+-------------------------------------
 
 -- Get number of visits of each Country and sort them from the higher
 SELECT Countries.name, count(Countries.name) As Total_Visists
@@ -759,6 +786,8 @@ FROM Countries
 GROUP BY Countries.name
 order by Total_Visists desc
 
+
+-------------------------------------
 
 -- get total number of reservations in a month in a year and sort them from the higher
 SELECT	year(check_in_date)			AS Year,
@@ -770,6 +799,8 @@ FROM Reservation
 	Order by Number_of_visitors desc
 
 
+-------------------------------------
+
 -- Get Average, Min, Max age of geusts in thier last visit
 SELECT  AVG(DATEDIFF(Year,People.date_of_birth,Guests.last_stay_date))As AVG_Age,
 		MAX(DATEDIFF(Year,People.date_of_birth,Guests.last_stay_date))As Max_Age,
@@ -778,6 +809,7 @@ FROM Guests INNER JOIN
    People ON Guests.person_id = People.person_id
    WHERE Guests.last_stay_date IS NOT NULL
 
+-------------------------------------
 
 -- Number of visitors checked in right know
 SELECT count(check_in_date)
@@ -785,6 +817,7 @@ FROM Reservation
 	where GetDate() between check_in_date AND check_out_date
 	And check_in_date IS NOT NULL
 
+-------------------------------------
 
 -- Visited room Type
 SELECT Rooms.room_type_id, Count(Reservation.room_id) As Visiting_Times
@@ -792,10 +825,43 @@ FROM Reservation INNER JOIN Rooms ON Reservation.room_id = Rooms.room_id
    Group by Rooms.room_type_id
    Order By Visiting_Times desc
 
+-------------------------------------
+
+--get total income of the year and how many payments preformed in this year
+SELECT Year(Payment.payment_date)As Year, FLOOR(sum( Payment.amount ))AS Income, Count(Payment.amount)AS Total_payments  FROM Payment
+group by Year(Payment.payment_date)
+order by income desc
+
+-------------------------------------
+
+-- the can be view to get the data to the receptionist
+SELECT People.first_name, People.second_name, People.third_name, People.last_name, People.email, Users.username, People.date_of_birth, Guests.last_stay_date, Guests.loyalty_tier_id, Room_Types.room_type_id
+FROM People 
+			LEFT JOIN Countries ON Countries.country_id = People.country_id 
+			INNER JOIN Guests ON People.person_id = Guests.person_id 
+			LEFT JOIN Users ON People.person_id = Users.person_id AND Guests.user_id = Users.user_id 
+			INNER JOIN Room_Types ON Guests.preferred_room_type_id = Room_Types.room_type_id
+order by username desc
+
+-------------------------------------
+
+-- select guests with Loyalty_Tiers from the higher (diamond) to lower (bronze)
+SELECT People.first_name, People.last_name, People.email, Loyalty_Tiers.tier_name
+FROM Loyalty_Tiers 
+		INNER JOIN Guests ON Loyalty_Tiers.loyalty_tier_id	= Guests.loyalty_tier_id 
+		INNER JOIN People ON Guests.person_id				= People.person_id
+order by Loyalty_Tiers.loyalty_tier_id desc
+
+-------------------------------------
+
+-- get Available Rooms
+SELECT Rooms.room_id, Rooms.floor, room_status.status
+FROM Rooms INNER JOIN
+   room_status ON Rooms.room_status_id = room_status.room_status_id
+   where Rooms.room_status_id = 1 -- Available
 
 
-
-
+   -------------------------------------------------------------------------------------------
 --contries insert data
 
 insert into Countries (name,country_code,iso_code)
@@ -1315,3 +1381,4 @@ values
 ('Zimbabwe Gold' , 'ZWG'),
 ('Zloty' , 'PLN'),
 ('Zloty' , 'PLZ')
+
