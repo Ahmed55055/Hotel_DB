@@ -32,8 +32,4 @@ The script includes a comment acknowledging some database design shortcomings.  
 ## Running the Script
 
 The script can be executed in SQL Server Management Studio (SSMS) or any other SQL Server client.  Ensure that you have the necessary permissions to create a database and tables.  You may need to uncomment the `CREATE DATABASE` and `USE` statements at the beginning of the script if you are creating the database for the first time.
-
-## Contact
-
-For any questions or feedback regarding this project, please feel free to contact me.
 ```
